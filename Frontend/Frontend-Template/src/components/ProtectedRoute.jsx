@@ -1,30 +1,22 @@
-// ProtectedRoute.jsx — Role-based route guard.
-// Redirects to /login if not authenticated.
-// Shows Access Denied if authenticated but role is insufficient.
-
+import { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { Container, Alert } from "react-bootstrap";
-import { useAuth } from "../hooks/useAuth";
+import { AuthContext } from "../context/authContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role } = useContext(AuthContext);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(role)) {
     return (
-      <Container className="mt-5">
-        <Alert variant="danger" className="text-center">
-          <Alert.Heading>Access Denied</Alert.Heading>
+      <div className="container mt-5">
+        <div className="alert alert-danger text-center">
+          <h5>Access Denied</h5>
           <p className="mb-0">
-            You don't have permission to view this page.
-            Required role: <strong>{allowedRoles.join(" or ")}</strong>.
-            Your role: <strong>{role}</strong>.
+            Required: <strong>{allowedRoles.join(" or ")}</strong> | Your role: <strong>{role}</strong>
           </p>
-        </Alert>
-      </Container>
+        </div>
+      </div>
     );
   }
 

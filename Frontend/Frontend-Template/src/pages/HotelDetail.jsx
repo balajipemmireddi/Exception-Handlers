@@ -1,31 +1,15 @@
-// HotelDetail.jsx — Phase 8: Hotel detail + booking modal wired.
-//
-// Fetches HotelDetailDTO from apiService.getHotelById(id).
-// "Book Now" on each available RoomCard opens BookingForm modal.
-// On successful booking shows an inline success alert with booking summary.
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-  Container, Row, Col, Card, Button, Badge, Spinner, Alert,
-} from "react-bootstrap";
+import { toast } from "react-toastify";
 import { getHotelById } from "../services/apiService";
 import RoomCard    from "../components/hotel/RoomCard";
 import BookingForm from "../components/booking/BookingForm";
-import { useToast } from "../hooks/useToast";
 
-// ── Star renderer ─────────────────────────────────────────────────────────────
 function StarRating({ rating }) {
   return (
     <span aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          style={{ color: i < rating ? "#f5a623" : "#d1d5db", fontSize: "1.25rem" }}
-          aria-hidden="true"
-        >
-          ★
-        </span>
+        <span key={i} style={{ color: i < rating ? "#f5a623" : "#d1d5db", fontSize: "1.25rem" }}>★</span>
       ))}
     </span>
   );
@@ -34,186 +18,134 @@ function StarRating({ rating }) {
 export default function HotelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { showToast } = useToast();
 
-  const [hotel,          setHotel]          = useState(null);
-  const [loading,        setLoading]        = useState(true);
-  const [error,          setError]          = useState(null);
-
-  // Booking modal state
-  const [selectedRoom,   setSelectedRoom]   = useState(null);   // room passed to modal
-  const [showModal,      setShowModal]      = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState(null);   // BookingResponseDTO | null
+  const [hotel,         setHotel]         = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState(null);
+  const [selectedRoom,  setSelectedRoom]  = useState(null);
+  const [showModal,     setShowModal]     = useState(false);
+  const [bookingResult, setBookingResult] = useState(null);
 
   useEffect(() => {
-    const fetchHotel = async () => {
-      setLoading(true);
-      setError(null);
+    const fetch = async () => {
       try {
         const data = await getHotelById(id);
         setHotel(data);
       } catch (err) {
-        const status = err?.response?.data?.status;
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load hotel details.";
-        setError({ status, message: msg });
+        setError({
+          status:  err?.response?.data?.status,
+          message: err?.response?.data?.message || err?.message || "Failed to load hotel",
+        });
       } finally {
         setLoading(false);
       }
     };
-    fetchHotel();
+    fetch();
   }, [id]);
 
-  // ── RoomCard "Book Now" handler ───────────────────────────────────────────
   const handleBookRoom = (room) => {
-    setBookingSuccess(null);   // clear any previous success banner
+    setBookingResult(null);
     setSelectedRoom(room);
     setShowModal(true);
   };
 
-  // ── BookingForm success callback ─────────────────────────────────────────
-  // Receives the full BookingResponseDTO from apiService.createBooking()
   const handleBookingSuccess = (booking) => {
     setShowModal(false);
     setSelectedRoom(null);
-    setBookingSuccess(booking);
-    showToast(`🎉 Booking confirmed at ${booking.hotelName}!`, "success");
+    setBookingResult(booking);
+    toast.success(`🎉 Booking confirmed at ${booking.hotelName}!`);
   };
 
-  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <Container className="py-5 text-center">
-        <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Loading hotel details…</span>
-        </Spinner>
+      <div className="container py-5 text-center">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading…</span>
+        </div>
         <p className="text-muted mt-3">Loading hotel details…</p>
-      </Container>
+      </div>
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <Container className="py-5">
-        <Alert variant="danger" className="text-center">
-          <Alert.Heading>
-            {error.status === 404 ? "Hotel Not Found" : "Unable to Load Hotel"}
-          </Alert.Heading>
+      <div className="container py-5">
+        <div className="alert alert-danger text-center">
+          <h5>{error.status === 404 ? "Hotel Not Found" : "Unable to Load Hotel"}</h5>
           <p className="mb-3">{error.message}</p>
-          <Button variant="outline-danger" onClick={() => navigate("/")}>
-            ← Back to Hotels
-          </Button>
-        </Alert>
-      </Container>
+          <button className="btn btn-outline-danger" onClick={() => navigate("/")}>← Back to Hotels</button>
+        </div>
+      </div>
     );
   }
 
   const { name, location, description, imageUrl, starRating, rooms } = hotel;
 
   return (
-    <Container className="py-5">
+    <div className="container py-5">
 
-      {/* ── Back link ────────────────────────────────────────────────── */}
+      {/* Back */}
       <div className="mb-4">
-        <Button as={Link} to="/" variant="outline-secondary" size="sm">
-          ← Back to Hotels
-        </Button>
+        <Link to="/" className="btn btn-outline-secondary btn-sm">← Back to Hotels</Link>
       </div>
 
-      {/* ── Booking success banner ───────────────────────────────────── */}
-      {bookingSuccess && (
-        <Alert
-          variant="success"
-          dismissible
-          onClose={() => setBookingSuccess(null)}
-          className="mb-4"
-        >
-          <Alert.Heading>🎉 Booking Confirmed!</Alert.Heading>
+      {/* Booking success banner */}
+      {bookingResult && (
+        <div className="alert alert-success alert-dismissible mb-4" role="alert">
+          <h5 className="alert-heading">🎉 Booking Confirmed!</h5>
           <p className="mb-1">
-            <strong>Hotel:</strong> {bookingSuccess.hotelName} &nbsp;|&nbsp;
-            <strong>Room:</strong> {bookingSuccess.roomType} &nbsp;|&nbsp;
-            <strong>Check-In:</strong> {bookingSuccess.checkIn} &nbsp;|&nbsp;
-            <strong>Check-Out:</strong> {bookingSuccess.checkOut}
+            <strong>Hotel:</strong> {bookingResult.hotelName} &nbsp;|&nbsp;
+            <strong>Room:</strong> {bookingResult.roomType} &nbsp;|&nbsp;
+            <strong>Check-In:</strong> {bookingResult.checkIn} &nbsp;|&nbsp;
+            <strong>Check-Out:</strong> {bookingResult.checkOut}
           </p>
           <p className="mb-1">
-            <strong>Total:</strong>{" "}
-            ₹{bookingSuccess.totalAmount.toLocaleString("en-IN")} &nbsp;|&nbsp;
-            <strong>Status:</strong>{" "}
-            <Badge bg="success">{bookingSuccess.status}</Badge>
+            <strong>Total:</strong> ₹{bookingResult.totalAmount.toLocaleString("en-IN")} &nbsp;|&nbsp;
+            <strong>Status:</strong> <span className="badge bg-success">{bookingResult.status}</span>
           </p>
           <p className="mb-0 small text-muted">
-            Booking ID: #{bookingSuccess.id} — View all your bookings in{" "}
-            <Link to="/user/dashboard">My Bookings</Link>.
+            Booking ID: #{bookingResult.id} — <Link to="/user/dashboard">View My Bookings</Link>
           </p>
-        </Alert>
+          <button type="button" className="btn-close" onClick={() => setBookingResult(null)} />
+        </div>
       )}
 
-      {/* ── Hotel hero card ──────────────────────────────────────────── */}
-      <Card className="shadow-sm border-0 mb-5">
-        <div style={{ overflow: "hidden", maxHeight: "400px" }}>
-          <Card.Img
-            variant="top"
-            src={imageUrl}
-            alt={`${name} — ${location}`}
-            style={{ width: "100%", height: "400px", objectFit: "cover" }}
-            onError={(e) => {
-              e.currentTarget.src =
-                `https://placehold.co/1200x400/6c757d/ffffff?text=${encodeURIComponent(name)}`;
-            }}
-          />
+      {/* Hotel hero */}
+      <div className="card shadow-sm border-0 mb-5">
+        <img
+          src={imageUrl}
+          alt={`${name} — ${location}`}
+          className="card-img-top"
+          style={{ height: "400px", objectFit: "cover" }}
+          onError={e => { e.currentTarget.src = `https://placehold.co/1200x400/6c757d/ffffff?text=${encodeURIComponent(name)}`; }}
+        />
+        <div className="card-body p-4">
+          <h1 className="fw-bold mb-2">{name}</h1>
+          <div className="d-flex align-items-center gap-2 flex-wrap mb-3">
+            <span className="badge bg-secondary fw-normal px-3 py-2">📍 {location}</span>
+            <StarRating rating={starRating} />
+            <span className="text-muted small">({starRating}-star hotel)</span>
+          </div>
+          <p className="text-muted mb-0" style={{ lineHeight: "1.6" }}>{description}</p>
         </div>
-
-        <Card.Body className="p-4">
-          <Row className="align-items-start mb-3">
-            <Col xs={12} md={8}>
-              <h1 className="fw-bold mb-2">{name}</h1>
-              <div className="d-flex align-items-center gap-2 flex-wrap">
-                <Badge bg="secondary" className="fw-normal px-3 py-2">
-                  📍 {location}
-                </Badge>
-                <div className="d-flex align-items-center gap-1">
-                  <StarRating rating={starRating} />
-                  <span className="text-muted small ms-1">({starRating}-star hotel)</span>
-                </div>
-              </div>
-            </Col>
-          </Row>
-          <p className="text-muted mb-0" style={{ lineHeight: "1.6" }}>
-            {description}
-          </p>
-        </Card.Body>
-      </Card>
-
-      {/* ── Rooms section ────────────────────────────────────────────── */}
-      <div className="mb-4">
-        <h3 className="fw-bold mb-1">Available Rooms</h3>
-        <p className="text-muted small mb-3">
-          Select a room to proceed with booking
-        </p>
       </div>
 
+      {/* Rooms */}
+      <h3 className="fw-bold mb-1">Available Rooms</h3>
+      <p className="text-muted small mb-4">Select a room to proceed with booking</p>
+
       {rooms.length === 0 ? (
-        <Alert variant="info" className="text-center">
-          <p className="mb-0">No rooms are currently listed for this hotel.</p>
-        </Alert>
+        <div className="alert alert-info text-center">No rooms listed for this hotel.</div>
       ) : (
-        <Row className="g-4">
-          {rooms.map((room) => (
-            <Col key={room.id} xs={12} sm={6} lg={4}>
-              <RoomCard
-                {...room}
-                hotelId={hotel.id}
-                onBook={handleBookRoom}
-              />
-            </Col>
+        <div className="row g-4">
+          {rooms.map(room => (
+            <div key={room.id} className="col-12 col-sm-6 col-lg-4">
+              <RoomCard {...room} hotelId={hotel.id} onBook={handleBookRoom} />
+            </div>
           ))}
-        </Row>
+        </div>
       )}
 
-      {/* ── Booking modal ─────────────────────────────────────────────── */}
       <BookingForm
         show={showModal}
         onHide={() => { setShowModal(false); setSelectedRoom(null); }}
@@ -221,7 +153,6 @@ export default function HotelDetail() {
         room={selectedRoom}
         hotelName={name}
       />
-
-    </Container>
+    </div>
   );
 }
