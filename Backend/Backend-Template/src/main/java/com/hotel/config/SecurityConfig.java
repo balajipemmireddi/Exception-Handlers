@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Public endpoints (no authentication required)
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        // Phase 7: Public hotel viewing endpoints (GET only)
+                        // Phase 7 & 8: Public hotel and room viewing endpoints (GET only)
                         .requestMatchers(HttpMethod.GET, "/api/hotels", "/api/hotels/**", "/api/hotels/search").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated())
