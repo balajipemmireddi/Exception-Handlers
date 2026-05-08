@@ -344,14 +344,6 @@ server {
 
 ---
 
-## Team
-
-| Name | Role |
-|---|---|
-| Member 1 | Frontend Developer |
-| Member 2 | Frontend Developer |
-| Member 3 | Backend Developer |
-| Member 4 | Backend Developer |
 
 ---
 
