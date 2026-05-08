@@ -74,10 +74,6 @@ export default function LoginPage() {
         <p className="mt-3 text-center text-muted small">
           Don't have an account? <Link to="/signup">Register here</Link>
         </p>
-
-        <div className="mt-2 p-2 bg-light rounded border small text-muted">
-          <strong>Dev:</strong> Any email + password works with <code>USE_MOCKS = true</code>
-        </div>
       </div>
     </div>
   );

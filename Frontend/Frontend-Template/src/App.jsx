@@ -12,6 +12,9 @@ import DashBoard           from "./pages/DashBoard";
 import UserDashboard       from "./pages/UserDashboard";
 import AdminDashboard      from "./pages/AdminDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import AdminHotels         from "./pages/AdminHotels";
+import AdminHotelForm      from "./pages/AdminHotelForm";
+import AdminRooms          from "./pages/AdminRooms";
 
 function NotFound() {
   return (
@@ -51,6 +54,26 @@ export default function App() {
         <Route path="/admin/bookings" element={
           <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/hotels" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <AdminHotels />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/hotels/new" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <AdminHotelForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/hotels/:id/edit" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <AdminHotelForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/hotels/:hotelId/rooms" element={
+          <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+            <AdminRooms />
           </ProtectedRoute>
         } />
 

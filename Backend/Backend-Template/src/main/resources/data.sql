@@ -78,38 +78,48 @@ CREATE TABLE IF NOT EXISTS bookings (
 
 -- ============================================================
 -- PHASE 6: Seed Admin User for Testing
--- Password: AdminPass123 (BCrypt hash)
+-- Email: admin@hotel.com
+-- Password: password
+-- BCrypt hash for "password" with strength 12
 -- ============================================================
+
+-- First, delete any existing admin users with old emails
+DELETE FROM user_roles WHERE user_id IN (
+    SELECT id FROM users WHERE email IN ('admin@hotel.com', 'admin@example.com')
+);
+DELETE FROM users WHERE email IN ('admin@hotel.com', 'admin@example.com');
+
+-- Now insert fresh admin user
 INSERT INTO users (name, email, password, created_at)
-SELECT 'Admin User', 'admin@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYVvMpYKZjO', NOW()
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@example.com');
+VALUES ('Admin User', 'admin@hotel.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW());
 
 -- Assign ADMIN role to admin user
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id
 FROM users u, roles r
-WHERE u.email = 'admin@example.com' AND r.name = 'ADMIN'
-AND NOT EXISTS (
-    SELECT 1 FROM user_roles ur
-    WHERE ur.user_id = u.id AND ur.role_id = r.id
-);
+WHERE u.email = 'admin@hotel.com' AND r.name = 'ADMIN';
 -- ============================================================
 -- PHASE 11: Seed Super Admin User for Testing
--- Password: SuperAdminPass123 (BCrypt hash)
+-- Email: superadmin@hotel.com
+-- Password: password
+-- BCrypt hash for "password" with strength 12
 -- ============================================================
+
+-- First, delete any existing superadmin users with old emails
+DELETE FROM user_roles WHERE user_id IN (
+    SELECT id FROM users WHERE email IN ('superadmin@hotel.com', 'superadmin@example.com')
+);
+DELETE FROM users WHERE email IN ('superadmin@hotel.com', 'superadmin@example.com');
+
+-- Now insert fresh superadmin user
 INSERT INTO users (name, email, password, created_at)
-SELECT 'Super Admin User', 'superadmin@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYVvMpYKZjO', NOW()
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'superadmin@example.com');
+VALUES ('Super Admin User', 'superadmin@hotel.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW());
 
 -- Assign SUPER_ADMIN role to super admin user
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id
 FROM users u, roles r
-WHERE u.email = 'superadmin@example.com' AND r.name = 'SUPER_ADMIN'
-AND NOT EXISTS (
-    SELECT 1 FROM user_roles ur
-    WHERE ur.user_id = u.id AND ur.role_id = r.id
-);
+WHERE u.email = 'superadmin@hotel.com' AND r.name = 'SUPER_ADMIN';
 
 -- ============================================================
 -- PHASE 11: Seed Sample Data for Analytics Testing

@@ -41,14 +41,19 @@ export default function AppNavbar() {
                 <li className="nav-item">
                   <Link className="nav-link" to="/user/dashboard">My Bookings</Link>
                 </li>
-                {isAdmin && (
-                  <li className="nav-item">
-                    <Link className="nav-link" to="/admin/bookings">Admin</Link>
-                  </li>
+                {(isAdmin || isSuperAdmin) && (
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/bookings">Bookings</Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/admin/hotels">Hotels</Link>
+                    </li>
+                  </>
                 )}
                 {isSuperAdmin && (
                   <li className="nav-item">
-                    <Link className="nav-link" to="/superadmin/analytics">Super Admin</Link>
+                    <Link className="nav-link" to="/superadmin/analytics">Analytics</Link>
                   </li>
                 )}
               </>
@@ -86,14 +91,19 @@ export default function AppNavbar() {
                   <li className="nav-item">
                     <Link className="nav-link" to="/user/dashboard" data-bs-dismiss="offcanvas">My Bookings</Link>
                   </li>
-                  {isAdmin && (
-                    <li className="nav-item">
-                      <Link className="nav-link" to="/admin/bookings" data-bs-dismiss="offcanvas">Admin</Link>
-                    </li>
+                  {(isAdmin || isSuperAdmin) && (
+                    <>
+                      <li className="nav-item">
+                        <Link className="nav-link" to="/admin/bookings" data-bs-dismiss="offcanvas">Bookings</Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link className="nav-link" to="/admin/hotels" data-bs-dismiss="offcanvas">Hotels</Link>
+                      </li>
+                    </>
                   )}
                   {isSuperAdmin && (
                     <li className="nav-item">
-                      <Link className="nav-link" to="/superadmin/analytics" data-bs-dismiss="offcanvas">Super Admin</Link>
+                      <Link className="nav-link" to="/superadmin/analytics" data-bs-dismiss="offcanvas">Analytics</Link>
                     </li>
                   )}
                 </>

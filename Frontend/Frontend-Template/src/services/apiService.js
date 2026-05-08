@@ -7,11 +7,12 @@
 
 import { login as authLogin, register as authRegister } from "./authService";
 import { getHotels as hotelGetAll, searchHotels as hotelSearch, getHotelById as hotelGetById, createHotel as hotelCreate, updateHotel as hotelUpdate, deleteHotel as hotelDelete } from "./hotelService";
+import { getRoomsByHotel as roomGetByHotel, addRoom as roomAdd, updateRoom as roomUpdate, deleteRoom as roomDelete } from "./roomService";
 import { createBooking as bookingCreate, getUserBookings as bookingGetUser, cancelBooking as bookingCancel } from "./bookingService";
 import { getAllBookings as adminGetAll, adminUpdateBooking as adminSvcUpdate, adminDeleteBooking as adminSvcDelete } from "./adminService";
 import { getRevenue as superGetRevenue, getAnalytics as superGetAnalytics } from "./superAdminService";
 
-export const USE_MOCKS = true;
+export const USE_MOCKS = false;
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,47 @@ export const updateHotel = async (id, data) => {
 export const deleteHotel = async (id) => {
   if (USE_MOCKS) { await delay(); return { message: "Hotel deleted successfully" }; }
   const res = await hotelDelete(id);
+  return res.data;
+};
+
+// ─── ROOMS ────────────────────────────────────────────────────────────────────
+
+export const getRoomsByHotel = async (hotelId) => {
+  if (USE_MOCKS) {
+    await delay();
+    const h = MOCK_DATA.hotels.find((h) => h.id === Number(hotelId));
+    if (!h) throw mockError(404, "Hotel not found");
+    return h.rooms || [];
+  }
+  const res = await roomGetByHotel(hotelId);
+  return res.data;
+};
+
+export const addRoom = async (hotelId, data) => {
+  if (USE_MOCKS) {
+    await delay();
+    const newRoom = { id: Date.now(), ...data, available: true };
+    return newRoom;
+  }
+  const res = await roomAdd(hotelId, data);
+  return res.data;
+};
+
+export const updateRoom = async (hotelId, roomId, data) => {
+  if (USE_MOCKS) {
+    await delay();
+    const h = MOCK_DATA.hotels.find((h) => h.id === Number(hotelId));
+    const r = h?.rooms.find((r) => r.id === Number(roomId));
+    if (!r) throw mockError(404, "Room not found");
+    return { ...r, ...data };
+  }
+  const res = await roomUpdate(hotelId, roomId, data);
+  return res.data;
+};
+
+export const deleteRoom = async (hotelId, roomId) => {
+  if (USE_MOCKS) { await delay(); return { message: "Room deleted successfully" }; }
+  const res = await roomDelete(hotelId, roomId);
   return res.data;
 };
 

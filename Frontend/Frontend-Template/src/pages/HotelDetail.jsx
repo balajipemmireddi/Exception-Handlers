@@ -126,7 +126,9 @@ export default function HotelDetail() {
             <StarRating rating={starRating} />
             <span className="text-muted small">({starRating}-star hotel)</span>
           </div>
-          <p className="text-muted mb-0" style={{ lineHeight: "1.6" }}>{description}</p>
+          <p className="text-muted mb-0" style={{ lineHeight: "1.6" }}>
+            {description || "No description available."}
+          </p>
         </div>
       </div>
 
@@ -134,11 +136,11 @@ export default function HotelDetail() {
       <h3 className="fw-bold mb-1">Available Rooms</h3>
       <p className="text-muted small mb-4">Select a room to proceed with booking</p>
 
-      {rooms.length === 0 ? (
+      {(rooms ?? []).length === 0 ? (
         <div className="alert alert-info text-center">No rooms listed for this hotel.</div>
       ) : (
         <div className="row g-4">
-          {rooms.map(room => (
+          {(rooms ?? []).map(room => (
             <div key={room.id} className="col-12 col-sm-6 col-lg-4">
               <RoomCard {...room} hotelId={hotel.id} onBook={handleBookRoom} />
             </div>

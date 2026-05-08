@@ -43,7 +43,7 @@ export default function HotelCard({ id, name, location, imageUrl, starRating, st
           <div>
             <span className="text-muted small">From</span>
             <div className="fw-bold text-primary fs-5">
-              ₹{startingPrice.toLocaleString("en-IN")}
+              {startingPrice ? `₹${startingPrice.toLocaleString("en-IN")}` : "Price N/A"}
               <span className="text-muted fw-normal small"> /night</span>
             </div>
           </div>
