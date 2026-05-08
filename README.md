@@ -355,4 +355,4 @@ server {
 
 ---
 
-> Built with ❤️ at Hackathon 2025
+> Built with ❤️ at Hackathon 2026
