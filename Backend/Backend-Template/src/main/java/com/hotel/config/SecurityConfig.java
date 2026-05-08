@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -55,6 +56,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Public endpoints (no authentication required)
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // Phase 7: Public hotel viewing endpoints (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/hotels", "/api/hotels/**", "/api/hotels/search").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())

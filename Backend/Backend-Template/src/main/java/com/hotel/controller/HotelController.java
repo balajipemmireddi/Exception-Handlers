@@ -2,6 +2,7 @@ package com.hotel.controller;
 
 import com.hotel.dto.HotelDetailDTO;
 import com.hotel.dto.HotelRequestDTO;
+import com.hotel.dto.HotelSummaryDTO;
 import com.hotel.service.HotelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,12 +11,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Phase 6: Hotel Controller
- * Handles ADMIN operations for hotel management.
- * All endpoints require ADMIN or SUPER_ADMIN role.
+ * Phase 6 & 7: Hotel Controller
+ * Handles ADMIN operations for hotel management and PUBLIC operations for hotel viewing.
  */
 @RestController
 @RequestMapping("/api/hotels")
@@ -24,6 +25,46 @@ public class HotelController {
 
     @Autowired
     private HotelService hotelService;
+
+    // ========== PUBLIC ENDPOINTS (Phase 7) ==========
+
+    /**
+     * GET /api/hotels
+     * Get all hotels (PUBLIC).
+     * Returns list of HotelSummaryDTO with startingPrice.
+     */
+    @GetMapping
+    public ResponseEntity<List<HotelSummaryDTO>> getAllHotels() {
+        List<HotelSummaryDTO> hotels = hotelService.getAllHotels();
+        return ResponseEntity.ok(hotels);
+    }
+
+    /**
+     * GET /api/hotels/{id}
+     * Get hotel detail with rooms (PUBLIC).
+     * Returns HotelDetailDTO.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<HotelDetailDTO> getHotelById(@PathVariable Long id) {
+        HotelDetailDTO hotel = hotelService.getHotelById(id);
+        return ResponseEntity.ok(hotel);
+    }
+
+    /**
+     * GET /api/hotels/search?location=&checkIn=&checkOut=
+     * Search hotels by location (PUBLIC).
+     * Optional checkIn/checkOut for future availability filtering.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<HotelSummaryDTO>> searchHotels(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String checkIn,
+            @RequestParam(required = false) String checkOut) {
+        List<HotelSummaryDTO> hotels = hotelService.searchHotels(location, checkIn, checkOut);
+        return ResponseEntity.ok(hotels);
+    }
+
+    // ========== ADMIN ENDPOINTS (Phase 6) ==========
 
     /**
      * POST /api/hotels
