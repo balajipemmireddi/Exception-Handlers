@@ -342,9 +342,6 @@ server {
 }
 ```
 
----
 
-
----
 
 > Built with ❤️ at Hackathon 2026
