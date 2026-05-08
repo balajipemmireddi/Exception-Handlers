@@ -1,13 +1,14 @@
 package com.hotel.repository;
 
-import com.hotel.entity.Users;
+import com.hotel.entity.Role;
+import com.hotel.entity.Role.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepo extends JpaRepository<Users, Long> {
+public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    Optional<Users> findByEmail(String email);
+    Optional<Role> findByName(RoleName name);
 }

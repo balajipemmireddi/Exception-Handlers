@@ -17,41 +17,56 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Phase 5: JWT Authentication Filter
+ * Extracts JWT token from Authorization header, validates it, and sets authentication in SecurityContext.
+ * Runs once per request before Spring Security's authentication filters.
+ */
 @Component
-public  class JwtFilte extends OncePerRequestFilter {
+public class JwtFilte extends OncePerRequestFilter {
 
     @Autowired
-    private JWTService  jwtService;
-
+    private JWTService jwtService;
 
     @Autowired
     private ApplicationContext context;
 
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
-        if(authHeader != null && authHeader.startsWith("Bearer ")){
+        // Extract token from "Bearer <token>" format
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = jwtService.extractUserName(token);
+            try {
+                username = jwtService.extractUserName(token);
+            } catch (Exception e) {
+                // Invalid token format - let it pass through, Spring Security will handle 401
+                filterChain.doFilter(request, response);
+                return;
+            }
         }
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
 
-             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
+        // If token is valid and no authentication is set yet
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
 
-            if(jwtService.validateToken(token,userDetails)){
-
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            // Validate token
+            if (jwtService.validateToken(token, userDetails)) {
+                // Create authentication token with authorities from UserDetails
+                UsernamePasswordAuthenticationToken authToken = 
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                
+                // Set authentication in SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-
-
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
