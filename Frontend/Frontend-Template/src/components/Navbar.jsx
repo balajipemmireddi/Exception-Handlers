@@ -36,16 +36,16 @@ export default function AppNavbar() {
             ) : (
               /* ── Authenticated links ── */
               <>
-                <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
+                <Nav.Link as={Link} to="/user/dashboard">My Bookings</Nav.Link>
 
                 {/* ADMIN + SUPER_ADMIN */}
                 {isAdmin && (
-                  <Nav.Link as={Link} to="/admin">Admin</Nav.Link>
+                  <Nav.Link as={Link} to="/admin/bookings">Admin</Nav.Link>
                 )}
 
                 {/* SUPER_ADMIN only */}
                 {isSuperAdmin && (
-                  <Nav.Link as={Link} to="/superadmin">Super Admin</Nav.Link>
+                  <Nav.Link as={Link} to="/superadmin/analytics">Super Admin</Nav.Link>
                 )}
 
                 {/* User identity pill */}

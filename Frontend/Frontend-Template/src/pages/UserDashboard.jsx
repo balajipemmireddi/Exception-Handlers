@@ -1,23 +1,23 @@
-// AdminDashboard.jsx — Admin bookings management at /admin/bookings.
-// Protected: ADMIN role (ADMIN + SUPER_ADMIN).
-// Phase 3: structural placeholder — real data loads in Phase 9
-// via apiService.getAllBookings().
+// UserDashboard.jsx — User booking dashboard at /user/dashboard.
+// Protected: USER role (and above).
+// Phase 3: structural placeholder — real booking data loads in Phase 8
+// via apiService.getUserBookings(userId).
 
 import { Container, Card, Table, Badge, Button } from "react-bootstrap";
 import { useAuth } from "../hooks/useAuth";
 
-export default function AdminDashboard() {
+export default function UserDashboard() {
   const { user } = useAuth();
 
   return (
     <Container className="py-5">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-          <h2 className="fw-bold mb-1">Admin — All Bookings</h2>
+          <h2 className="fw-bold mb-1">My Bookings</h2>
           <p className="text-muted mb-0">
             Logged in as <strong>{user?.name}</strong>
             {" "}
-            <Badge bg="warning" text="dark">{user?.role}</Badge>
+            <Badge bg="primary">{user?.role}</Badge>
           </p>
         </div>
       </div>
@@ -28,7 +28,6 @@ export default function AdminDashboard() {
             <thead className="table-dark">
               <tr>
                 <th>#</th>
-                <th>User</th>
                 <th>Hotel</th>
                 <th>Room Type</th>
                 <th>Check-In</th>
@@ -39,10 +38,10 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {/* Phase 9 will map real allBookings from apiService.getAllBookings() here */}
+              {/* Phase 8 will map real bookings from apiService.getUserBookings() here */}
               <tr>
-                <td colSpan={9} className="text-center text-muted py-4">
-                  All system bookings will appear here in Phase 9.
+                <td colSpan={8} className="text-center text-muted py-4">
+                  Your bookings will appear here in Phase 8.
                 </td>
               </tr>
             </tbody>
