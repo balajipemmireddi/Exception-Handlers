@@ -1,104 +1,80 @@
 import { useState } from "react";
-import { loginUser } from "../services/UserService";
-import { jwtDecode } from "jwt-decode";
-import { Container, Card, Form, Button, Toast } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { login as apiLogin } from "../services/apiService";
+import { useAuth } from "../hooks/useAuth";
 
-export default function Login() {
+export default function LoginPage() {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: ""
-  });
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
-  const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
-  const showToast = (msg, type = "success") => {
-    setToast({ show: true, msg, type });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      const token = await loginUser(credentials);
-
-      if (!token || token === "Fail") {
-        showToast("Invalid Credentials", "danger");
-        return;
-      }
-
-      // Decode JWT (email + role)
-      const decoded = jwtDecode(token);
-
-      localStorage.setItem("token", token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: decoded.sub,
-          role: decoded.role
-        })
-      );
-
-      showToast("Login Successful ", "success");
-
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1500);
-
+      const authResponse = await apiLogin(formData);
+      login(authResponse);
+      toast.success(`Welcome back, ${authResponse.name}!`);
+      navigate("/");
     } catch (err) {
-      showToast(err || "Login Failed", "danger"
-        
-      );
+      toast.error(err?.response?.data?.message || err?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container className="d-flex justify-content-center mt-5">
-      <Card className="p-4 shadow" style={{ width: "400px" }}>
-        <h3 className="text-center mb-3">Login</h3>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+      <div className="card p-4 shadow" style={{ width: "400px" }}>
+        <h3 className="text-center mb-4">🏨 HotelBook — Sign In</h3>
 
-        <Form onSubmit={handleLogin}>
-          <Form.Control
-            className="mb-2"
-            placeholder="Email"
-            type="email"
-            onChange={(e) =>
-              setCredentials({ ...credentials, email: e.target.value })
-            }
-            required
-          />
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Email address</label>
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              placeholder="john@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </div>
 
-          <Form.Control
-            className="mb-3"
-            placeholder="Password"
-            type="password"
-            onChange={(e) =>
-              setCredentials({ ...credentials, password: e.target.value })
-            }
-            required
-          />
+          <div className="mb-4">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              autoComplete="current-password"
+            />
+          </div>
 
-          <Button type="submit" className="w-100">
-            Login
-          </Button>
-        </Form>
-      </Card>
+          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Signing in…" : "Sign In"}
+          </button>
+        </form>
 
-      {/* Toast */}
-      <Toast
-        show={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
-        delay={2000}
-        autohide
-        bg={toast.type}
-        style={{ position: "absolute", top: 20, right: 20 }}
-      >
-        <Toast.Body className="text-white">
-          {toast.msg}
-        </Toast.Body>
-      </Toast>
-    </Container>
+        <p className="mt-3 text-center text-muted small">
+          Don't have an account? <Link to="/signup">Register here</Link>
+        </p>
+      </div>
+    </div>
   );
 }

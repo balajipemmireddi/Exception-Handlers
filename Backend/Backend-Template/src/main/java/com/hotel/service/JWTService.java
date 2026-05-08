@@ -1,10 +1,10 @@
 package com.hotel.service;
 
-import com.hotel.entity.Users;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -17,26 +17,28 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    private final String secretKey = "VGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3ItaGFja2F0aG9uLWp3dC10b2tlbnM=";
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    public JWTService() {
-        // Remove the KeyGenerator completely!
-    }
+    @Value("${jwt.expiration.ms}")
+    private long expirationMs;
 
-
-
-    // Inside JWTService.java
-
-    public String generateToken(String username, Users.Role role) {
+    /**
+     * Generates a JWT token.
+     * Claims include: sub (email), userId, role (highest role string).
+     * Matches the JWT contract in context-rbac.md Section 7.
+     */
+    public String generateToken(String email, Long userId, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         claims.put("role", role);
 
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(username)
+                .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 30))
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -47,10 +49,16 @@ public class JWTService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-
     public String extractUserName(String token) {
-        // extract the username from jwt token
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {

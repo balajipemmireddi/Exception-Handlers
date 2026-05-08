@@ -1,30 +1,35 @@
 package com.hotel.entity;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class UserPrincipal implements UserDetails {
 
-    Users user;
+    private final Users user;
 
-    public UserPrincipal(Users user){
-        this.user=user;
-
+    public UserPrincipal(Users user) {
+        this.user = user;
     }
 
+    /**
+     * Maps each Role in the user's role set to a Spring Security GrantedAuthority.
+     * e.g. Role.RoleName.ADMIN → "ROLE_ADMIN"
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // This permanently ensures @PreAuthorize("hasRole('ADMIN')") works flawlessly
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        Set<Role> roles = user.getRoles();
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
+                .collect(Collectors.toSet());
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public String getPassword() {
         return user.getPassword();
     }
 
@@ -51,5 +56,9 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public Users getUser() {
+        return user;
     }
 }

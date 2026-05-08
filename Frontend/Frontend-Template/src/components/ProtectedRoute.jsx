@@ -5,12 +5,19 @@ import { AuthContext } from "../context/authContext";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, role } = useContext(AuthContext);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(role)) {
-    return <h2>Access Denied</h2>;
+    return (
+      <div className="container mt-5">
+        <div className="alert alert-danger text-center">
+          <h5>Access Denied</h5>
+          <p className="mb-0">
+            Required: <strong>{allowedRoles.join(" or ")}</strong> | Your role: <strong>{role}</strong>
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return children;

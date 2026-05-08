@@ -1,22 +1,30 @@
-import { useContext } from "react";
-import { AuthContext } from "../context/authContext";
-import { Container, Card } from "react-bootstrap";
+import { useAuth } from "../hooks/useAuth";
+
+const ROLE_BADGE = {
+  USER:        "badge bg-primary",
+  ADMIN:       "badge bg-warning text-dark",
+  SUPER_ADMIN: "badge bg-danger",
+};
 
 export default function DashBoard() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   return (
-    <Container className="mt-5 d-flex justify-content-center">
-      <Card className="p-5 shadow text-center" style={{ width: "500px" }}>
-        <h2>Welcome to your Dashboard!</h2>
-        <p className="text-muted mt-3">
-          You are successfully logged in as: <br />
-          <strong>{user?.email}</strong>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+      <div className="card shadow text-center p-5" style={{ maxWidth: "500px", width: "100%" }}>
+        <h2 className="mb-3">Welcome back, {user?.name || "Guest"}!</h2>
+        <p className="text-muted mb-1"><strong>User ID:</strong> {user?.userId}</p>
+        <p className="text-muted mb-3">
+          <strong>Role:</strong>{" "}
+          <span className={ROLE_BADGE[user?.role] || "badge bg-secondary"}>
+            {user?.role}
+          </span>
         </p>
-        <p className="mt-4">
-          <em>This is a boilerplate protected route. Build your features here!</em>
+        <hr />
+        <p className="text-muted small mb-0">
+          You are successfully authenticated. Your dashboard content will appear here.
         </p>
-      </Card>
-    </Container>
+      </div>
+    </div>
   );
 }

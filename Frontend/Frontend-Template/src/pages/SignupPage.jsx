@@ -1,108 +1,98 @@
 import { useState } from "react";
-import { registerUser } from "../services/UserService";
-import { Container, Card, Form, Button, Toast } from "react-bootstrap";
+import { useNavigate, Link, Navigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { register as apiRegister } from "../services/apiService";
+import { useAuth } from "../hooks/useAuth";
 
-export default function Signup() {
+export default function SignupPage() {
+  const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
-  const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: ""
-  });
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
-  const [toast, setToast] = useState({ show: false, msg: "", type: "success" });
-
-  const showToast = (msg, type = "success") => {
-    setToast({ show: true, msg, type });
-  };
-
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setUser((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSignup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      await registerUser(user);
-
-      showToast("Signup Successful", "success");
-
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 1500);
-
+      const authResponse = await apiRegister(formData);
+      login(authResponse);
+      toast.success(`Account created! Welcome, ${authResponse.name}!`);
+      navigate("/");
     } catch (err) {
-      showToast(err || "Signup Failed", "danger");
+      toast.error(err?.response?.data?.message || err?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container className="d-flex justify-content-center mt-5">
-      <Card className="p-4 shadow" style={{ width: "400px" }}>
-        <h3 className="text-center mb-3">Signup</h3>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "90vh" }}>
+      <div className="card p-4 shadow" style={{ width: "400px" }}>
+        <h3 className="text-center mb-4">🏨 HotelBook — Create Account</h3>
 
-        <Form onSubmit={handleSignup}>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              className="form-control"
+              placeholder="John Doe"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              autoComplete="name"
+            />
+          </div>
 
-          <Form.Control
-            className="mb-2"
-            placeholder="First Name"
-            name="firstName"
-            onChange={handleChange}
-            required
-          />
+          <div className="mb-3">
+            <label className="form-label">Email address</label>
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              placeholder="john@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </div>
 
-          <Form.Control
-            className="mb-2"
-            placeholder="Last Name"
-            name="lastName"
-            onChange={handleChange}
-          />
+          <div className="mb-4">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              placeholder="Min. 6 characters"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              autoComplete="new-password"
+            />
+          </div>
 
-          <Form.Control
-            className="mb-2"
-            placeholder="Email"
-            type="email"
-            name="email"
-            onChange={handleChange}
-            required
-          />
+          <button type="submit" className="btn btn-success w-100" disabled={loading}>
+            {loading ? "Creating account…" : "Create Account"}
+          </button>
+        </form>
 
-          <Form.Control
-            className="mb-3"
-            placeholder="Password"
-            type="password"
-            name="password"
-            onChange={handleChange}
-            required
-          />
+        <p className="mt-3 text-center text-muted small">
+          Already have an account? <Link to="/login">Sign in here</Link>
+        </p>
 
-          <Button type="submit" className="w-100">
-            Register
-          </Button>
-        </Form>
-      </Card>
-
-      {/* Toast */}
-      <Toast
-        show={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
-        delay={2000}
-        autohide
-        bg={toast.type}
-        style={{ position: "absolute", top: 20, right: 20 }}
-      >
-        <Toast.Body className="text-white">
-          {toast.msg}
-        </Toast.Body>
-      </Toast>
-    </Container>
+        <div className="mt-2 p-2 bg-light rounded border small text-muted">
+          <strong>Dev:</strong> Use <code>taken@example.com</code> to trigger 409 error
+        </div>
+      </div>
+    </div>
   );
 }
