@@ -1,9 +1,32 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // apiService.js  —  Centralized API layer for Hotel Booking App (RBAC Edition)
 //
-// Toggle USE_MOCKS to switch between mock data and real backend calls.
-//   true  → returns MOCK_DATA (parallel frontend development)
-//   false → fires real fetch requests to VITE_API_BASE_URL (backend integration)
+// ── PHASE 12: BACKEND INTEGRATION CHECKLIST ──────────────────────────────────
+//
+//  Step 1 — Set the toggle:
+//    const USE_MOCKS = false;
+//
+//  Step 2 — Set the backend URL in .env:
+//    VITE_API_BASE_URL=http://localhost:8080
+//    (or your staging / production URL)
+//
+//  Step 3 — Start the Spring Boot backend on port 8080.
+//
+//  Step 4 — Run the frontend:
+//    npm run dev
+//
+//  Step 5 — Open DevTools → Network tab and verify:
+//    • Requests fire to http://localhost:8080/api/...
+//    • Authorization: Bearer <token> header is present on protected routes
+//    • Responses match the DTO shapes in hackothon_context.md §3
+//
+//  Step 6 — If CORS errors appear, either:
+//    a) Add the Vite dev proxy in vite.config.js (already configured), OR
+//    b) Add @CrossOrigin("http://localhost:5173") to Spring Boot controllers
+//
+// ── TOGGLE ────────────────────────────────────────────────────────────────────
+//   true  → returns MOCK_DATA  (parallel frontend development — Phases 1–11)
+//   false → fires real fetch() requests to VITE_API_BASE_URL (Phase 12+)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const USE_MOCKS = true;
@@ -182,6 +205,51 @@ const mockError = (status, message) => {
   return err;
 };
 
+/**
+ * handleResponse — Normalises real fetch() responses into the standardised
+ * error shape { status, message, timestamp } (hackothon_context.md §8).
+ *
+ * Handles three failure modes:
+ *   1. Backend returned JSON error body  → use its { status, message }
+ *   2. Backend returned non-JSON (HTML)  → use HTTP status text
+ *   3. Network failure (no response)     → "Network error" message
+ *
+ * On success (2xx) returns the parsed JSON body.
+ *
+ * @param {Response} res  — native fetch Response
+ * @returns {Promise<any>}
+ */
+const handleResponse = async (res) => {
+  if (res.ok) {
+    // 204 No Content — return empty object
+    if (res.status === 204) return {};
+    return res.json();
+  }
+
+  // Try to parse the backend error body as JSON
+  let errorData;
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    try {
+      errorData = await res.json();
+    } catch {
+      errorData = null;
+    }
+  }
+
+  // Build a normalised error matching backend §8 shape
+  const err = new Error(errorData?.message || res.statusText || "Request failed");
+  err.response = {
+    status: res.status,
+    data: {
+      status:    errorData?.status    ?? res.status,
+      message:   errorData?.message   ?? res.statusText ?? "An unexpected error occurred.",
+      timestamp: errorData?.timestamp ?? new Date().toISOString(),
+    },
+  };
+  throw err;
+};
+
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 
 /**
@@ -203,8 +271,7 @@ export const login = async (credentials) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -235,8 +302,7 @@ export const register = async (userData) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 // ─── HOTELS ───────────────────────────────────────────────────────────────────
@@ -254,8 +320,7 @@ export const getHotels = async () => {
   }
 
   const res = await fetch(`${BASE_URL}/api/hotels`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -281,8 +346,7 @@ export const searchHotels = async ({ location = "", checkIn = "", checkOut = "" 
 
   const params = new URLSearchParams({ location, checkIn, checkOut }).toString();
   const res = await fetch(`${BASE_URL}/api/hotels/search?${params}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -299,8 +363,7 @@ export const getHotelById = async (id) => {
   }
 
   const res = await fetch(`${BASE_URL}/api/hotels/${id}`);
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -319,8 +382,7 @@ export const createHotel = async (hotelData) => {
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(hotelData)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -340,8 +402,7 @@ export const updateHotel = async (id, hotelData) => {
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(hotelData)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -357,8 +418,7 @@ export const deleteHotel = async (id) => {
     method: "DELETE",
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 // ─── BOOKINGS — USER ──────────────────────────────────────────────────────────
@@ -397,8 +457,7 @@ export const createBooking = async (bookingRequest) => {
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(bookingRequest)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -414,8 +473,7 @@ export const getUserBookings = async (userId) => {
   const res = await fetch(`${BASE_URL}/api/bookings/user/${userId}`, {
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -434,8 +492,7 @@ export const cancelBooking = async (id) => {
     method: "PUT",
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 // ─── BOOKINGS — ADMIN ─────────────────────────────────────────────────────────
@@ -453,8 +510,7 @@ export const getAllBookings = async () => {
   const res = await fetch(`${BASE_URL}/api/admin/bookings`, {
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -474,8 +530,7 @@ export const adminUpdateBooking = async (id, updateData) => {
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(updateData)
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -492,8 +547,7 @@ export const adminDeleteBooking = async (id) => {
     method: "DELETE",
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 // ─── ANALYTICS — SUPER_ADMIN ──────────────────────────────────────────────────
@@ -511,8 +565,7 @@ export const getRevenue = async () => {
   const res = await fetch(`${BASE_URL}/api/superadmin/revenue`, {
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 /**
@@ -528,8 +581,7 @@ export const getAnalytics = async () => {
   const res = await fetch(`${BASE_URL}/api/superadmin/analytics`, {
     headers: { ...authHeader() }
   });
-  if (!res.ok) throw await res.json();
-  return res.json();
+  return handleResponse(res);
 };
 
 // ─── EXPORT TOGGLE (for debugging / Phase 12 verification) ───────────────────
