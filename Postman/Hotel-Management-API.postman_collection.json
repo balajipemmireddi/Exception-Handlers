@@ -1,0 +1,797 @@
+{
+	"info": {
+		"_postman_id": "hotel-management-api-collection",
+		"name": "Hotel Management API",
+		"description": "Complete API collection for Hotel Management System with Authentication, Hotels, Rooms, Bookings, and Admin operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hotel_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "room_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "booking_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"user_id\", jsonData.userId);",
+									"    console.log(\"Token saved: \" + jsonData.token);",
+									"    console.log(\"User ID saved: \" + jsonData.userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user with default USER role. Returns JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"user_id\", jsonData.userId);",
+									"    console.log(\"Token saved: \" + jsonData.token);",
+									"    console.log(\"User ID saved: \" + jsonData.userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate user and receive JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"user_id\", jsonData.userId);",
+									"    console.log(\"Admin Token saved: \" + jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@hotel.com\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login as ADMIN user (seeded from data.sql)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Super Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"user_id\", jsonData.userId);",
+									"    console.log(\"Super Admin Token saved: \" + jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"superadmin@hotel.com\",\n    \"password\": \"superadmin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login as SUPER_ADMIN user (seeded from data.sql)"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user registration and login"
+		},
+		{
+			"name": "2. Hotels (Public)",
+			"item": [
+				{
+					"name": "Get All Hotels",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels"
+							]
+						},
+						"description": "Get all hotels with summary information (PUBLIC endpoint)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Hotel By ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"hotel_id\", jsonData.id);",
+									"    console.log(\"Hotel ID saved: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}"
+							]
+						},
+						"description": "Get detailed hotel information including rooms (PUBLIC endpoint)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels by Location",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels/search?location=New York",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"search"
+							],
+							"query": [
+								{
+									"key": "location",
+									"value": "New York"
+								},
+								{
+									"key": "checkIn",
+									"value": "2026-06-01",
+									"disabled": true
+								},
+								{
+									"key": "checkOut",
+									"value": "2026-06-05",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search hotels by location (PUBLIC endpoint). Optional checkIn/checkOut parameters for future availability filtering."
+					},
+					"response": []
+				}
+			],
+			"description": "Public endpoints for viewing hotels"
+		},
+		{
+			"name": "3. Hotels (Admin)",
+			"item": [
+				{
+					"name": "Create Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"hotel_id\", jsonData.id);",
+									"    console.log(\"Hotel ID saved: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grand Plaza Hotel\",\n    \"location\": \"New York\",\n    \"description\": \"Luxury hotel in the heart of Manhattan\",\n    \"amenities\": \"WiFi, Pool, Gym, Restaurant, Spa\",\n    \"imageUrl\": \"https://example.com/hotel-image.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hotels",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels"
+							]
+						},
+						"description": "Create a new hotel (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Hotel",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grand Plaza Hotel - Updated\",\n    \"location\": \"New York\",\n    \"description\": \"Premium luxury hotel in Manhattan\",\n    \"amenities\": \"WiFi, Pool, Gym, Restaurant, Spa, Bar\",\n    \"imageUrl\": \"https://example.com/hotel-image-updated.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}"
+							]
+						},
+						"description": "Update an existing hotel (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Hotel",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}"
+							]
+						},
+						"description": "Delete a hotel (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for managing hotels"
+		},
+		{
+			"name": "4. Rooms",
+			"item": [
+				{
+					"name": "Get Rooms by Hotel",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}/rooms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}",
+								"rooms"
+							]
+						},
+						"description": "Get all rooms for a specific hotel (PUBLIC endpoint)"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Room to Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"room_id\", jsonData.id);",
+									"    console.log(\"Room ID saved: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"roomType\": \"Deluxe Suite\",\n    \"pricePerNight\": 250.00,\n    \"availability\": true,\n    \"capacity\": 2,\n    \"description\": \"Spacious suite with city view\",\n    \"imageUrl\": \"https://example.com/room-image.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}/rooms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}",
+								"rooms"
+							]
+						},
+						"description": "Add a new room to a hotel (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Room",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"roomType\": \"Premium Deluxe Suite\",\n    \"pricePerNight\": 300.00,\n    \"availability\": true,\n    \"capacity\": 3,\n    \"description\": \"Luxurious suite with panoramic city view\",\n    \"imageUrl\": \"https://example.com/room-image-updated.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}/rooms/{{room_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}",
+								"rooms",
+								"{{room_id}}"
+							]
+						},
+						"description": "Update an existing room (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Room",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/hotels/{{hotel_id}}/rooms/{{room_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{hotel_id}}",
+								"rooms",
+								"{{room_id}}"
+							]
+						},
+						"description": "Delete a room (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing hotel rooms"
+		},
+		{
+			"name": "5. Bookings (User)",
+			"item": [
+				{
+					"name": "Create Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"booking_id\", jsonData.id);",
+									"    console.log(\"Booking ID saved: \" + jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": {{user_id}},\n    \"roomId\": {{room_id}},\n    \"checkInDate\": \"2026-06-01\",\n    \"checkOutDate\": \"2026-06-05\",\n    \"numberOfGuests\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							]
+						},
+						"description": "Create a new booking (USER/ADMIN/SUPER_ADMIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Bookings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/user/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"user",
+								"{{user_id}}"
+							]
+						},
+						"description": "Get all bookings for a specific user (USER can only view own bookings)"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Booking",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/bookings/{{booking_id}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"{{booking_id}}",
+								"cancel"
+							]
+						},
+						"description": "Cancel a booking (USER can only cancel own bookings)"
+					},
+					"response": []
+				}
+			],
+			"description": "User endpoints for managing bookings"
+		},
+		{
+			"name": "6. Bookings (Admin)",
+			"item": [
+				{
+					"name": "Get All Bookings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bookings"
+							]
+						},
+						"description": "View all system-wide bookings (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Booking",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"checkInDate\": \"2026-06-02\",\n    \"checkOutDate\": \"2026-06-06\",\n    \"numberOfGuests\": 3,\n    \"status\": \"CONFIRMED\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/bookings/{{booking_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bookings",
+								"{{booking_id}}"
+							]
+						},
+						"description": "Edit/update a booking (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Booking",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/bookings/{{booking_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bookings",
+								"{{booking_id}}"
+							]
+						},
+						"description": "Hard delete a booking (ADMIN/SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for managing all bookings"
+		},
+		{
+			"name": "7. Super Admin Analytics",
+			"item": [
+				{
+					"name": "Get Revenue Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/superadmin/revenue",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"superadmin",
+								"revenue"
+							]
+						},
+						"description": "Get financial earnings and revenue data (SUPER_ADMIN only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get System Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/superadmin/analytics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"superadmin",
+								"analytics"
+							]
+						},
+						"description": "Get high-level system analytics (SUPER_ADMIN only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Super Admin endpoints for analytics and revenue data"
+		}
+	]
+}
