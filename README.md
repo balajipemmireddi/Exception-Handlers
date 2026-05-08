@@ -38,7 +38,7 @@ The frontend is decoupled from the backend via a centralized `apiService.js` wit
 | Layer | Technology |
 |---|---|
 | Frontend | React (Vite), JavaScript (.js / .jsx) |
-| Styling | Tailwind CSS |
+| Styling | Bootstrap|
 | Routing | React Router DOM |
 | State Management | React Context API |
 | Backend | Spring Boot, Java |
