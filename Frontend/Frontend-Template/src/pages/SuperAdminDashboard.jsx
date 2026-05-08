@@ -12,10 +12,12 @@ import { useState, useEffect } from "react";
 import { Container, Badge, Spinner, Alert, Button } from "react-bootstrap";
 import { getRevenue, getAnalytics } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 import SuperAdminAnalytics from "../components/admin/SuperAdminAnalytics";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [revenue,   setRevenue]   = useState(null);
   const [analytics, setAnalytics] = useState(null);
@@ -33,6 +35,7 @@ export default function SuperAdminDashboard() {
       ]);
       setRevenue(revenueData);
       setAnalytics(analyticsData);
+      showToast("Analytics data loaded.", "info");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||

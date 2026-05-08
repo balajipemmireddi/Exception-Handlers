@@ -21,10 +21,12 @@ import {
 } from "react-bootstrap";
 import { register as apiRegister } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   // Already authenticated — bounce to home
   if (isAuthenticated) {
@@ -108,6 +110,8 @@ export default function SignupPage() {
       // Persist to localStorage + update global React state
       login(authResponse);
 
+      showToast(`Account created! Welcome, ${authResponse.name}!`, "success");
+
       // Phase 4 exit criteria: redirect to home page
       navigate("/");
     } catch (err) {
@@ -121,8 +125,10 @@ export default function SignupPage() {
       // Surface email-conflict error directly on the email field
       if (status === 409) {
         setFieldErrors((prev) => ({ ...prev, email: msg }));
+        showToast(msg, "danger");
       } else {
         setError(msg);
+        showToast(msg, "danger");
       }
     } finally {
       setLoading(false);

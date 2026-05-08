@@ -18,11 +18,13 @@ import {
 } from "react-bootstrap";
 import { getAllBookings, adminDeleteBooking } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 import AdminBookingTable from "../components/admin/AdminBookingTable";
 import EditBookingModal  from "../components/admin/EditBookingModal";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [bookings,      setBookings]      = useState([]);
   const [loading,       setLoading]       = useState(true);
@@ -81,6 +83,7 @@ export default function AdminDashboard() {
     setShowEditModal(false);
     setEditTarget(null);
     setSuccessMsg(`Booking #${updated.id} updated successfully.`);
+    showToast(`Booking #${updated.id} updated.`, "success");
   };
 
   // ── Delete flow ───────────────────────────────────────────────────────────
@@ -100,6 +103,7 @@ export default function AdminDashboard() {
       // Remove from local state
       setBookings((prev) => prev.filter((b) => b.id !== deleteTarget.id));
       setSuccessMsg(`Booking #${deleteTarget.id} (${deleteTarget.hotelName}) deleted.`);
+      showToast(`Booking #${deleteTarget.id} deleted.`, "danger");
       setDeleteTarget(null);
     } catch (err) {
       const msg =

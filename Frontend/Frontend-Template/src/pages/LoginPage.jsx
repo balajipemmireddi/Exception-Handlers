@@ -18,10 +18,12 @@ import {
 } from "react-bootstrap";
 import { login as apiLogin } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   // Already authenticated — bounce to home
   if (isAuthenticated) {
@@ -79,6 +81,8 @@ export default function LoginPage() {
       // Persist to localStorage + update global React state
       login(authResponse);
 
+      showToast(`Welcome back, ${authResponse.name}!`, "success");
+
       // Phase 4 exit criteria: redirect to home page
       navigate("/");
     } catch (err) {
@@ -88,6 +92,7 @@ export default function LoginPage() {
         err?.message ||
         "Invalid credentials. Please try again.";
       setError(msg);
+      showToast(msg, "danger");
     } finally {
       setLoading(false);
     }

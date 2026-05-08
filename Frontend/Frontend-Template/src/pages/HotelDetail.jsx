@@ -12,6 +12,7 @@ import {
 import { getHotelById } from "../services/apiService";
 import RoomCard    from "../components/hotel/RoomCard";
 import BookingForm from "../components/booking/BookingForm";
+import { useToast } from "../hooks/useToast";
 
 // ── Star renderer ─────────────────────────────────────────────────────────────
 function StarRating({ rating }) {
@@ -33,6 +34,7 @@ function StarRating({ rating }) {
 export default function HotelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [hotel,          setHotel]          = useState(null);
   const [loading,        setLoading]        = useState(true);
@@ -76,7 +78,8 @@ export default function HotelDetail() {
   const handleBookingSuccess = (booking) => {
     setShowModal(false);
     setSelectedRoom(null);
-    setBookingSuccess(booking);   // show inline confirmation
+    setBookingSuccess(booking);
+    showToast(`🎉 Booking confirmed at ${booking.hotelName}!`, "success");
   };
 
   // ── Loading ───────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap";
 import { getUserBookings, cancelBooking } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 
 // ── Status badge helper ───────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -26,6 +27,7 @@ function StatusBadge({ status }) {
 
 export default function UserDashboard() {
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [bookings,       setBookings]       = useState([]);
   const [loading,        setLoading]        = useState(true);
@@ -84,6 +86,7 @@ export default function UserDashboard() {
       );
 
       setSuccessMsg(`Booking #${updated.id} (${updated.hotelName}) has been cancelled.`);
+      showToast(`Booking #${updated.id} cancelled.`, "warning");
       setCancelTarget(null);
     } catch (err) {
       const msg =
