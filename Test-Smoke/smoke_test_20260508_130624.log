@@ -1,0 +1,20 @@
+====================================================
+STARTING SMOKE TEST SUITE
+Target: http://localhost:8080
+Log File: Test-Smoke/smoke_test_20260508_130624.log
+====================================================
+[0;34mRegistering user: smoke_1778225785@example.com...[0m
+[0;32mSUCCESS: User registered.[0m
+[0;34mLogging in user: smoke_1778225785@example.com...[0m
+[0;32mSUCCESS: Token received.[0m
+[0;34mTesting User Access Test (/api/test/user)...[0m
+[0;32mSUCCESS: /api/test/user returned 200[0m
+[0;34mTesting Admin Access Test (Unauthorized) (/api/test/admin)...[0m
+[0;32mSUCCESS: /api/test/admin returned 403[0m
+[0;34mTesting Login Endpoint (Bad Request) (/api/auth/login)...[0m
+[0;31mFAILURE: /api/auth/login returned 500 (Expected 400)[0m
+
+====================================================
+SMOKE TEST COMPLETED
+Results logged to: Test-Smoke/smoke_test_20260508_130624.log
+====================================================

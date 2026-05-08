@@ -1,0 +1,24 @@
+====================================================
+STARTING SMOKE TEST SUITE
+Target: http://localhost:8080
+Log File: Test-Smoke/smoke_test_20260508_134831.log
+====================================================
+[0;34mTesting Public - Get All Hotels (/api/hotels)...[0m
+[0;32mSUCCESS: /api/hotels returned 200[0m
+[0;34mTesting Public - Search Hotels (/api/hotels/search?location=Mumbai)...[0m
+[0;32mSUCCESS: /api/hotels/search?location=Mumbai returned 200[0m
+[0;34mRegistering user: smoke_1778228313@example.com...[0m
+[0;32mSUCCESS: User registered.[0m
+[0;34mLogging in user: smoke_1778228313@example.com...[0m
+[0;32mSUCCESS: Token received.[0m
+[0;34mTesting Protected - User Access (/api/test/user)...[0m
+[0;32mSUCCESS: /api/test/user returned 200[0m
+[0;34mTesting Protected - Admin Only (Should be 403) (/api/test/admin)...[0m
+[0;32mSUCCESS: /api/test/admin returned 403[0m
+[0;34mTesting Error - Login Bad Request (/api/auth/login)...[0m
+[0;31mFAILURE: /api/auth/login returned 500 (Expected 400)[0m
+
+====================================================
+SMOKE TEST COMPLETED
+Results logged to: Test-Smoke/smoke_test_20260508_134831.log
+====================================================
