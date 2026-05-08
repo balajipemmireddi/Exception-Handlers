@@ -1,28 +1,37 @@
-// HotelList.jsx — Fetches and displays all hotels.
+// HotelList.jsx — Phase 6: Hotel listing with search support.
 //
-// Phase 5: Calls apiService.getHotels() (USE_MOCKS = true returns mock HotelSummaryDTO[]).
-// Maps each HotelSummaryDTO to a HotelCard component.
+// Props:
+//   searchParams  { location, checkIn, checkOut } | null
+//     null / undefined → calls apiService.getHotels()   (all hotels)
+//     object           → calls apiService.searchHotels() (filtered results)
 //
 // Data shape: HotelSummaryDTO[] (hackothon_context.md §3)
 //   [{ id, name, location, imageUrl, starRating, startingPrice }, ...]
 
 import { useState, useEffect } from "react";
-import { Row, Col, Spinner, Alert } from "react-bootstrap";
-import { getHotels } from "../../services/apiService";
+import { Row, Col, Spinner, Alert, Badge } from "react-bootstrap";
+import { getHotels, searchHotels } from "../../services/apiService";
 import HotelCard from "./HotelCard";
 
-export default function HotelList() {
+export default function HotelList({ searchParams = null }) {
   const [hotels,  setHotels]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
+  // Re-fetch whenever searchParams changes (null = show all, object = filtered)
   useEffect(() => {
     const fetchHotels = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Returns HotelSummaryDTO[] from apiService (mock or real)
-        const data = await getHotels();
+        let data;
+        if (searchParams) {
+          // Phase 6: filtered call — GET /api/hotels/search?location=&checkIn=&checkOut=
+          data = await searchHotels(searchParams);
+        } else {
+          // Phase 5 default: GET /api/hotels
+          data = await getHotels();
+        }
         setHotels(data);
       } catch (err) {
         const msg =
@@ -36,16 +45,20 @@ export default function HotelList() {
     };
 
     fetchHotels();
-  }, []);
+  }, [searchParams]);
 
   // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="text-center py-5">
         <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Loading hotels…</span>
+          <span className="visually-hidden">
+            {searchParams ? "Searching hotels…" : "Loading hotels…"}
+          </span>
         </Spinner>
-        <p className="text-muted mt-3">Loading hotels…</p>
+        <p className="text-muted mt-3">
+          {searchParams ? "Searching hotels…" : "Loading hotels…"}
+        </p>
       </div>
     );
   }
@@ -60,23 +73,60 @@ export default function HotelList() {
     );
   }
 
+  // ── Result header (only shown when a search was performed) ────────────────
+  const ResultHeader = () => {
+    if (!searchParams) return null;
+
+    const { location, checkIn, checkOut } = searchParams;
+    const parts = [];
+    if (location) parts.push(`"${location}"`);
+    if (checkIn && checkOut) parts.push(`${checkIn} → ${checkOut}`);
+
+    return (
+      <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <span className="text-muted small">
+          Search results for{" "}
+          {parts.map((p, i) => (
+            <Badge key={i} bg="light" text="dark" className="border me-1 fw-normal">
+              {p}
+            </Badge>
+          ))}
+        </span>
+        <Badge bg={hotels.length > 0 ? "success" : "secondary"}>
+          {hotels.length} {hotels.length === 1 ? "hotel" : "hotels"} found
+        </Badge>
+      </div>
+    );
+  };
+
   // ── Empty state ───────────────────────────────────────────────────────────
   if (hotels.length === 0) {
     return (
-      <Alert variant="info" className="text-center">
-        <p className="mb-0">No hotels available at the moment. Check back soon!</p>
-      </Alert>
+      <>
+        <ResultHeader />
+        <Alert variant="warning" className="text-center">
+          <Alert.Heading>No hotels found</Alert.Heading>
+          <p className="mb-0">
+            {searchParams
+              ? "No hotels match your search criteria. Try a different location or dates."
+              : "No hotels available at the moment. Check back soon!"}
+          </p>
+        </Alert>
+      </>
     );
   }
 
-  // ── Success: render hotel cards ──────────────────────────────────────────
+  // ── Success: render hotel cards ───────────────────────────────────────────
   return (
-    <Row className="g-4">
-      {hotels.map((hotel) => (
-        <Col key={hotel.id} xs={12} sm={6} lg={4}>
-          <HotelCard {...hotel} />
-        </Col>
-      ))}
-    </Row>
+    <>
+      <ResultHeader />
+      <Row className="g-4">
+        {hotels.map((hotel) => (
+          <Col key={hotel.id} xs={12} sm={6} lg={4}>
+            <HotelCard {...hotel} />
+          </Col>
+        ))}
+      </Row>
+    </>
   );
 }
