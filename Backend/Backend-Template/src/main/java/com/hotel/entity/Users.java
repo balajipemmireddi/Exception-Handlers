@@ -1,107 +1,55 @@
 package com.hotel.entity;
 
-
-import java.time.LocalDate;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
+/**
+ * User entity — Phase 1 RBAC schema.
+ * Role is stored in the separate `roles` table via the `user_roles` join table.
+ * No inline role column on this entity.
+ */
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@Table(name = "users")
 @Data
+@NoArgsConstructor
 public class Users {
 
-    public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
-	public LocalDate getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(LocalDate createdDate) {
-		this.createdDate = createdDate;
-	}
-
-
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String firstName;
-    @Column(nullable = true)
-    private String lastName;
-    @Column(nullable = false,unique = true)
+    private String name;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
     @Column(nullable = false)
     private String password;
-    public enum Role {
-        USER, ADMIN
-    }
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-    @Column(updatable = false)
-    @CreatedDate
-    private LocalDate createdDate;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    
-
+    // Many-to-Many with roles via user_roles join table
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns        = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 }
