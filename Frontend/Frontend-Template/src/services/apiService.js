@@ -210,12 +210,22 @@ export const login = async (credentials) => {
 /**
  * POST /api/auth/register
  * Returns AuthResponseDTO: { token, userId, name, role }
+ *
+ * Mock error simulation:
+ *   - Missing fields          → 400 "All fields are required"
+ *   - email already registered → 409 "Email already exists"
+ *     (simulate by using the same email as the mock authResponse)
  */
 export const register = async (userData) => {
   if (USE_MOCKS) {
     await delay();
     if (!userData.name || !userData.email || !userData.password) {
       throw mockError(400, "All fields are required");
+    }
+    // Simulate duplicate-email error — triggers when the submitted email
+    // matches the mock user's email so the error path can be tested in the UI.
+    if (userData.email === "taken@example.com") {
+      throw mockError(409, "Email already exists. Please use a different email or sign in.");
     }
     return { ...MOCK_DATA.authResponse, name: userData.name };
   }
