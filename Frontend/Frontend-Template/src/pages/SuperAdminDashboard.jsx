@@ -1,111 +1,122 @@
-// SuperAdminDashboard.jsx — Phase 10: Super Admin analytics at /superadmin/analytics.
-// Protected: SUPER_ADMIN role only.
-//
-// Fetches both endpoints in parallel with Promise.all:
-//   GET /api/superadmin/revenue   → RevenueDTO
-//   GET /api/superadmin/analytics → SystemAnalyticsDTO
-//
-// Passes both DTOs to SuperAdminAnalytics for rendering.
-// No data is hardcoded here — all values come from apiService.js.
-
 import { useState, useEffect } from "react";
-import { Container, Badge, Spinner, Alert, Button } from "react-bootstrap";
+import { toast } from "react-toastify";
 import { getRevenue, getAnalytics } from "../services/apiService";
 import { useAuth } from "../hooks/useAuth";
-import { useToast } from "../hooks/useToast";
-import SuperAdminAnalytics from "../components/admin/SuperAdminAnalytics";
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
-  const { showToast } = useToast();
 
   const [revenue,   setRevenue]   = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
-    setError(null);
     try {
-      // Fetch both endpoints in parallel — neither depends on the other
-      const [revenueData, analyticsData] = await Promise.all([
-        getRevenue(),    // → RevenueDTO
-        getAnalytics(),  // → SystemAnalyticsDTO
-      ]);
-      setRevenue(revenueData);
-      setAnalytics(analyticsData);
-      showToast("Analytics data loaded.", "info");
+      const [rev, ana] = await Promise.all([getRevenue(), getAnalytics()]);
+      setRevenue(rev);
+      setAnalytics(ana);
+      toast.info("Analytics loaded");
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to load analytics data.";
-      setError(msg);
+      toast.error(err?.response?.data?.message || "Failed to load analytics");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
+
+  const inr = (n) => "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
   return (
-    <Container className="py-5">
-
-      {/* ── Page header ─────────────────────────────────────────────── */}
+    <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h2 className="fw-bold mb-1">Super Admin — Analytics &amp; Revenue</h2>
-          <p className="text-muted mb-0 small">
+          <p className="text-muted small mb-0">
             Logged in as <strong>{user?.name}</strong>{" "}
-            <Badge bg="danger">{user?.role}</Badge>
+            <span className="badge bg-danger">{user?.role}</span>
           </p>
         </div>
-
-        {/* Refresh button — re-runs both fetches */}
         {!loading && (
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={fetchData}
-            aria-label="Refresh analytics data"
-          >
-            ↻ Refresh
-          </Button>
+          <button className="btn btn-outline-secondary btn-sm" onClick={fetchData}>↻ Refresh</button>
         )}
       </div>
 
-      {/* ── Loading ──────────────────────────────────────────────────── */}
-      {loading && (
-        <div className="text-center py-5">
-          <Spinner animation="border" variant="danger" role="status">
-            <span className="visually-hidden">Loading analytics…</span>
-          </Spinner>
-          <p className="text-muted mt-3">Loading revenue &amp; analytics data…</p>
-        </div>
-      )}
+      {loading && <p className="text-center text-muted">Loading analytics…</p>}
 
-      {/* ── Error ────────────────────────────────────────────────────── */}
-      {!loading && error && (
-        <Alert variant="danger">
-          <Alert.Heading>Unable to load analytics</Alert.Heading>
-          <p className="mb-3">{error}</p>
-          <Button variant="outline-danger" size="sm" onClick={fetchData}>
-            Try Again
-          </Button>
-        </Alert>
-      )}
+      {!loading && revenue && analytics && (
+        <>
+          {/* Revenue */}
+          <h5 className="fw-bold mb-3">💰 Revenue Overview</h5>
+          <div className="row g-3 mb-5">
+            {[
+              { label: "Total Revenue",     value: inr(revenue.totalRevenue),     color: "primary" },
+              { label: "Monthly Revenue",   value: inr(revenue.monthlyRevenue),   color: "success" },
+              { label: "Daily Revenue",     value: inr(revenue.dailyRevenue),     color: "info"    },
+              { label: "Total Bookings",    value: revenue.totalBookings,         color: "warning" },
+              { label: "Confirmed",         value: revenue.confirmedBookings,     color: "success" },
+              { label: "Cancelled",         value: revenue.cancelledBookings,     color: "danger"  },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="col-12 col-sm-6 col-xl-4">
+                <div className={`card border-0 shadow-sm border-start border-${color} border-4`}>
+                  <div className="card-body py-3">
+                    <p className="text-muted small mb-1">{label}</p>
+                    <h4 className="fw-bold mb-0">{value}</h4>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-      {/* ── Analytics content ────────────────────────────────────────── */}
-      {!loading && !error && revenue && analytics && (
-        <SuperAdminAnalytics
-          revenue={revenue}
-          analytics={analytics}
-        />
-      )}
+          {/* Analytics */}
+          <h5 className="fw-bold mb-3">📊 System Analytics</h5>
+          <div className="row g-3 mb-4">
+            {[
+              { label: "Total Users",       value: analytics.totalUsers },
+              { label: "Total Hotels",      value: analytics.totalHotels },
+              { label: "Total Rooms",       value: analytics.totalRooms },
+              { label: "Total Bookings",    value: analytics.totalBookings },
+              { label: "Most Booked Hotel", value: analytics.mostBookedHotel },
+              { label: "Top Location",      value: analytics.topLocation },
+            ].map(({ label, value }) => (
+              <div key={label} className="col-12 col-sm-6 col-xl-4">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body py-3">
+                    <p className="text-muted small mb-1">{label}</p>
+                    <h5 className="fw-bold mb-0">{value}</h5>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-    </Container>
+          {/* Occupancy */}
+          <div className="card border-0 shadow-sm text-white"
+               style={{ background: "linear-gradient(135deg,#1a1a2e,#0f3460)" }}>
+            <div className="card-body py-4 px-4">
+              <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                  <p className="small text-white-50 mb-1">System Occupancy Rate</p>
+                  <h2 className="fw-bold mb-1">{analytics.occupancyRate}%</h2>
+                  <p className="text-white-50 small mb-0">Percentage of rooms currently occupied</p>
+                </div>
+                <div style={{ minWidth: "200px" }}>
+                  <div className="progress" style={{ height: "12px", borderRadius: "6px" }}>
+                    <div
+                      className={`progress-bar ${analytics.occupancyRate >= 70 ? "bg-success" : analytics.occupancyRate >= 40 ? "bg-warning" : "bg-danger"}`}
+                      style={{ width: `${analytics.occupancyRate}%` }}
+                    />
+                  </div>
+                  <p className="text-white-50 small mt-2 mb-0 text-end">
+                    {analytics.occupancyRate >= 70 ? "🟢 Healthy" : analytics.occupancyRate >= 40 ? "🟡 Moderate" : "🔴 Low"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
