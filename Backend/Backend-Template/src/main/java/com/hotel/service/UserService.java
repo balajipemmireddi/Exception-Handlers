@@ -1,5 +1,6 @@
 package com.hotel.service;
 
+import com.hotel.dto.AuthResponseDTO;
 import com.hotel.entity.Role;
 import com.hotel.entity.Role.RoleName;
 import com.hotel.entity.Users;
@@ -51,7 +52,44 @@ public class UserService {
         };
     }
 
-    /** Login — returns JWT token string. */
+    /**
+     * Phase 4: Login method that returns AuthResponseDTO.
+     * Authenticates user and generates JWT token with userId and role.
+     */
+    public AuthResponseDTO login(String email, String password) {
+        // Authenticate
+        Authentication authentication = authmanager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password));
+
+        if (!authentication.isAuthenticated()) {
+            throw new RuntimeException("Authentication failed");
+        }
+
+        // Fetch user from DB
+        Users user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Resolve highest role
+        String highestRole = resolveHighestRole(user);
+
+        // Generate JWT token
+        String token = jwtService.generateToken(user.getEmail(), user.getId(), highestRole);
+
+        // Return AuthResponseDTO
+        return new AuthResponseDTO(token, user.getId(), user.getName(), highestRole);
+    }
+
+    /**
+     * Phase 4: Generate JWT token (wrapper for JWTService).
+     */
+    public String generateToken(String email, Long userId, String role) {
+        return jwtService.generateToken(email, userId, role);
+    }
+
+    /** 
+     * Legacy verify method — returns JWT token string.
+     * Kept for backward compatibility with old controllers.
+     */
     public String verify(Users user) {
         Authentication authentication = authmanager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
