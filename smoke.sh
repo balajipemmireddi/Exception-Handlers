@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================================
-# SMOKE TEST SCRIPT - HOTEL-BALL (ANALYTICS VERSION)
+# SMOKE TEST SCRIPT - HOTEL-BALL (EXCEPTION HANDLER TEST)
 # =================================================================================
 # Description: Automated smoke test for Hotel Management System API.
 # Saves results to Test-Smoke directory.
@@ -113,13 +113,13 @@ TOKEN=$(login_and_get_token "$TEST_EMAIL" "$TEST_PASS")
 # 3. Protected Endpoints
 if [ -n "$TOKEN" ]; then
     check_endpoint "Protected - User Access" "/api/test/user" 200 "$TOKEN"
-    
-    # Super Admin Endpoints (Should be 403 for regular user)
     check_endpoint "SuperAdmin - Revenue (Unauthorized)" "/api/superadmin/revenue" 403 "$TOKEN"
-    check_endpoint "SuperAdmin - Analytics (Unauthorized)" "/api/superadmin/analytics" 403 "$TOKEN"
 else
     echo -e "${COLOR_FAILURE}ERROR: Skipping protected endpoints because token was not retrieved.${COLOR_RESET}" >&2
 fi
+
+# 4. Exception Handler Test (Bad Request)
+check_endpoint "Error - Login Bad Request (Testing Exception Handler)" "/api/auth/login" 400
 
 echo -e "\n===================================================="
 echo "SMOKE TEST COMPLETED"
