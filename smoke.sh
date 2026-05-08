@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # =================================================================================
+<<<<<<< Updated upstream
 # SMOKE TEST SCRIPT - HOTEL-BALL
+=======
+# SMOKE TEST SCRIPT - HOTEL-BALL (NEHA BRANCH)
+>>>>>>> Stashed changes
 # =================================================================================
 # Description: Automated smoke test for Hotel Management System API.
 # Saves results to Test-Smoke directory.
@@ -22,7 +26,10 @@ COLOR_INFO="\033[0;34m"
 mkdir -p "$LOG_DIR"
 
 # Redirect output to both console and log file
+<<<<<<< Updated upstream
 # Using a subshell to ensure all output is captured
+=======
+>>>>>>> Stashed changes
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # --- HELPER FUNCTIONS ---
@@ -58,11 +65,23 @@ function login_and_get_token() {
     echo -e "${COLOR_INFO}Logging in user: $email...${COLOR_RESET}" >&2
     local login_payload="{\"email\":\"$email\", \"password\":\"$password\"}"
     
+<<<<<<< Updated upstream
     local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$login_payload" "$BASE_URL/login")
     
     if [[ $response == ey* ]]; then
         echo -e "${COLOR_SUCCESS}SUCCESS: Token received.${COLOR_RESET}" >&2
         echo "$response"
+=======
+    # Send login request and capture response
+    local response=$(curl -s -X POST -H "Content-Type: application/json" -d "$login_payload" "$BASE_URL/api/auth/login")
+    
+    # Extract token using sed (since jq is missing)
+    local token=$(echo "$response" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+    
+    if [[ $token == ey* ]]; then
+        echo -e "${COLOR_SUCCESS}SUCCESS: Token received.${COLOR_RESET}" >&2
+        echo "$token"
+>>>>>>> Stashed changes
         return 0
     else
         echo -e "${COLOR_FAILURE}FAILURE: Could not retrieve token.${COLOR_RESET}" >&2
@@ -79,7 +98,11 @@ function register_user() {
     echo -e "${COLOR_INFO}Registering user: $email...${COLOR_RESET}" >&2
     local register_payload="{\"name\":\"$name\", \"email\":\"$email\", \"password\":\"$password\"}"
     
+<<<<<<< Updated upstream
     local status=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$register_payload" "$BASE_URL/register")
+=======
+    local status=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "$register_payload" "$BASE_URL/api/auth/register")
+>>>>>>> Stashed changes
     
     if [ "$status" -eq 200 ] || [ "$status" -eq 201 ]; then
         echo -e "${COLOR_SUCCESS}SUCCESS: User registered.${COLOR_RESET}" >&2
@@ -98,11 +121,17 @@ echo "Target: $BASE_URL"
 echo "Log File: $LOG_FILE"
 echo "===================================================="
 
+<<<<<<< Updated upstream
 # 1. Register a test user
 # We use a timestamped email to ensure a fresh registration if needed, 
 # or just a standard one for repeat tests.
 TEST_EMAIL="smoke_test@example.com"
 TEST_PASS="password123"
+=======
+# 1. Register a test user with a fresh email
+TEST_EMAIL="smoke_$(date +%s)@example.com"
+TEST_PASS="Test@123"
+>>>>>>> Stashed changes
 register_user "Smoke Test User" "$TEST_EMAIL" "$TEST_PASS"
 
 # 2. Login to get token
@@ -116,11 +145,19 @@ if [ -n "$TOKEN" ]; then
     # Test admin access (should fail with 403 for regular user)
     check_endpoint "Admin Access Test (Unauthorized)" "/api/test/admin" 403 "$TOKEN"
 else
+<<<<<<< Updated upstream
     echo -e "${COLOR_FAILURE}ERROR: Skipping protected endpoints because token was not retrieved.${COLOR_RESET}"
 fi
 
 # 4. Public Endpoint Check (Testing login endpoint without payload)
 check_endpoint "Login Endpoint (Bad Request)" "/login" 400
+=======
+    echo -e "${COLOR_FAILURE}ERROR: Skipping protected endpoints because token was not retrieved.${COLOR_RESET}" >&2
+fi
+
+# 4. Public Endpoint Check (Testing login endpoint with bad request)
+check_endpoint "Login Endpoint (Bad Request)" "/api/auth/login" 400
+>>>>>>> Stashed changes
 
 echo -e "\n===================================================="
 echo "SMOKE TEST COMPLETED"
