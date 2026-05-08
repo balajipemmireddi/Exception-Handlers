@@ -1,12 +1,8 @@
-// HotelDetail.jsx — Phase 7: Hotel detail page at /hotels/:id
+// HotelDetail.jsx — Phase 8: Hotel detail + booking modal wired.
 //
-// Fetches HotelDetailDTO from apiService.getHotelById(id):
-//   { id, name, location, description, imageUrl, starRating, rooms[] }
-//
-// Renders:
-//   • Hotel hero image + metadata (name, location, star rating, description)
-//   • List of RoomCard components (one per room in rooms[])
-//   • "Book Now" on RoomCard is a placeholder — Phase 8 wires the booking modal
+// Fetches HotelDetailDTO from apiService.getHotelById(id).
+// "Book Now" on each available RoomCard opens BookingForm modal.
+// On successful booking shows an inline success alert with booking summary.
 
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -14,9 +10,10 @@ import {
   Container, Row, Col, Card, Button, Badge, Spinner, Alert,
 } from "react-bootstrap";
 import { getHotelById } from "../services/apiService";
-import RoomCard from "../components/hotel/RoomCard";
+import RoomCard    from "../components/hotel/RoomCard";
+import BookingForm from "../components/booking/BookingForm";
 
-// ── Star renderer (reused from HotelCard) ─────────────────────────────────────
+// ── Star renderer ─────────────────────────────────────────────────────────────
 function StarRating({ rating }) {
   return (
     <span aria-label={`${rating} out of 5 stars`}>
@@ -37,16 +34,20 @@ export default function HotelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [hotel,   setHotel]   = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [hotel,          setHotel]          = useState(null);
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(null);
+
+  // Booking modal state
+  const [selectedRoom,   setSelectedRoom]   = useState(null);   // room passed to modal
+  const [showModal,      setShowModal]      = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(null);   // BookingResponseDTO | null
 
   useEffect(() => {
     const fetchHotel = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Returns HotelDetailDTO: { id, name, location, description, imageUrl, starRating, rooms[] }
         const data = await getHotelById(id);
         setHotel(data);
       } catch (err) {
@@ -60,11 +61,25 @@ export default function HotelDetail() {
         setLoading(false);
       }
     };
-
     fetchHotel();
   }, [id]);
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── RoomCard "Book Now" handler ───────────────────────────────────────────
+  const handleBookRoom = (room) => {
+    setBookingSuccess(null);   // clear any previous success banner
+    setSelectedRoom(room);
+    setShowModal(true);
+  };
+
+  // ── BookingForm success callback ─────────────────────────────────────────
+  // Receives the full BookingResponseDTO from apiService.createBooking()
+  const handleBookingSuccess = (booking) => {
+    setShowModal(false);
+    setSelectedRoom(null);
+    setBookingSuccess(booking);   // show inline confirmation
+  };
+
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <Container className="py-5 text-center">
@@ -76,7 +91,7 @@ export default function HotelDetail() {
     );
   }
 
-  // ── Error state (404 or other) ───────────────────────────────────────────
+  // ── Error ─────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <Container className="py-5">
@@ -93,14 +108,7 @@ export default function HotelDetail() {
     );
   }
 
-  // ── Success: render hotel detail ─────────────────────────────────────────
   const { name, location, description, imageUrl, starRating, rooms } = hotel;
-
-  // Placeholder for Phase 8 — will open a booking modal
-  const handleBookRoom = (room) => {
-    console.log("Phase 8: Open booking modal for room", room);
-    // Phase 8 will implement the actual booking flow here
-  };
 
   return (
     <Container className="py-5">
@@ -112,19 +120,42 @@ export default function HotelDetail() {
         </Button>
       </div>
 
-      {/* ── Hotel hero card ─────────────────────────────────────────────── */}
+      {/* ── Booking success banner ───────────────────────────────────── */}
+      {bookingSuccess && (
+        <Alert
+          variant="success"
+          dismissible
+          onClose={() => setBookingSuccess(null)}
+          className="mb-4"
+        >
+          <Alert.Heading>🎉 Booking Confirmed!</Alert.Heading>
+          <p className="mb-1">
+            <strong>Hotel:</strong> {bookingSuccess.hotelName} &nbsp;|&nbsp;
+            <strong>Room:</strong> {bookingSuccess.roomType} &nbsp;|&nbsp;
+            <strong>Check-In:</strong> {bookingSuccess.checkIn} &nbsp;|&nbsp;
+            <strong>Check-Out:</strong> {bookingSuccess.checkOut}
+          </p>
+          <p className="mb-1">
+            <strong>Total:</strong>{" "}
+            ₹{bookingSuccess.totalAmount.toLocaleString("en-IN")} &nbsp;|&nbsp;
+            <strong>Status:</strong>{" "}
+            <Badge bg="success">{bookingSuccess.status}</Badge>
+          </p>
+          <p className="mb-0 small text-muted">
+            Booking ID: #{bookingSuccess.id} — View all your bookings in{" "}
+            <Link to="/user/dashboard">My Bookings</Link>.
+          </p>
+        </Alert>
+      )}
+
+      {/* ── Hotel hero card ──────────────────────────────────────────── */}
       <Card className="shadow-sm border-0 mb-5">
-        {/* Hero image */}
         <div style={{ overflow: "hidden", maxHeight: "400px" }}>
           <Card.Img
             variant="top"
             src={imageUrl}
             alt={`${name} — ${location}`}
-            style={{
-              width: "100%",
-              height: "400px",
-              objectFit: "cover",
-            }}
+            style={{ width: "100%", height: "400px", objectFit: "cover" }}
             onError={(e) => {
               e.currentTarget.src =
                 `https://placehold.co/1200x400/6c757d/ffffff?text=${encodeURIComponent(name)}`;
@@ -133,7 +164,6 @@ export default function HotelDetail() {
         </div>
 
         <Card.Body className="p-4">
-          {/* Header row: name + location + star rating */}
           <Row className="align-items-start mb-3">
             <Col xs={12} md={8}>
               <h1 className="fw-bold mb-2">{name}</h1>
@@ -143,22 +173,18 @@ export default function HotelDetail() {
                 </Badge>
                 <div className="d-flex align-items-center gap-1">
                   <StarRating rating={starRating} />
-                  <span className="text-muted small ms-1">
-                    ({starRating}-star hotel)
-                  </span>
+                  <span className="text-muted small ms-1">({starRating}-star hotel)</span>
                 </div>
               </div>
             </Col>
           </Row>
-
-          {/* Description */}
           <p className="text-muted mb-0" style={{ lineHeight: "1.6" }}>
             {description}
           </p>
         </Card.Body>
       </Card>
 
-      {/* ── Rooms section ───────────────────────────────────────────────── */}
+      {/* ── Rooms section ────────────────────────────────────────────── */}
       <div className="mb-4">
         <h3 className="fw-bold mb-1">Available Rooms</h3>
         <p className="text-muted small mb-3">
@@ -168,9 +194,7 @@ export default function HotelDetail() {
 
       {rooms.length === 0 ? (
         <Alert variant="info" className="text-center">
-          <p className="mb-0">
-            No rooms are currently listed for this hotel. Check back later!
-          </p>
+          <p className="mb-0">No rooms are currently listed for this hotel.</p>
         </Alert>
       ) : (
         <Row className="g-4">
@@ -185,6 +209,15 @@ export default function HotelDetail() {
           ))}
         </Row>
       )}
+
+      {/* ── Booking modal ─────────────────────────────────────────────── */}
+      <BookingForm
+        show={showModal}
+        onHide={() => { setShowModal(false); setSelectedRoom(null); }}
+        onSuccess={handleBookingSuccess}
+        room={selectedRoom}
+        hotelName={name}
+      />
 
     </Container>
   );
