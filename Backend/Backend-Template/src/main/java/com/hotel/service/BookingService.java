@@ -2,6 +2,7 @@ package com.hotel.service;
 
 import com.hotel.dto.BookingRequestDTO;
 import com.hotel.dto.BookingResponseDTO;
+import com.hotel.dto.BookingUpdateDTO;
 import com.hotel.entity.Booking;
 import com.hotel.entity.Hotel;
 import com.hotel.entity.Room;
@@ -163,5 +164,63 @@ public class BookingService {
                 booking.getTotalAmount(),
                 booking.getCreatedAt().toString()
         );
+    }
+
+    // ========== ADMIN OPERATIONS (Phase 10) ==========
+
+    /**
+     * Get all bookings in the system (ADMIN operation).
+     */
+    public List<BookingResponseDTO> getAllBookings() {
+        List<Booking> bookings = bookingRepository.findAll();
+        return bookings.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Update a booking (ADMIN operation).
+     */
+    @Transactional
+    public BookingResponseDTO updateBooking(Long bookingId, BookingUpdateDTO request) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+
+        // Update fields if provided
+        if (request.getCheckIn() != null && !request.getCheckIn().trim().isEmpty()) {
+            LocalDate checkIn = LocalDate.parse(request.getCheckIn(), DATE_FORMATTER);
+            booking.setCheckIn(checkIn);
+        }
+
+        if (request.getCheckOut() != null && !request.getCheckOut().trim().isEmpty()) {
+            LocalDate checkOut = LocalDate.parse(request.getCheckOut(), DATE_FORMATTER);
+            booking.setCheckOut(checkOut);
+        }
+
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) {
+            booking.setStatus(request.getStatus());
+        }
+
+        // Recalculate total amount if dates changed
+        if (request.getCheckIn() != null || request.getCheckOut() != null) {
+            long numberOfNights = ChronoUnit.DAYS.between(booking.getCheckIn(), booking.getCheckOut());
+            if (numberOfNights > 0) {
+                Double totalAmount = booking.getRoom().getPrice() * numberOfNights;
+                booking.setTotalAmount(totalAmount);
+            }
+        }
+
+        Booking updatedBooking = bookingRepository.save(booking);
+        return mapToDTO(updatedBooking);
+    }
+
+    /**
+     * Hard delete a booking (ADMIN operation).
+     */
+    @Transactional
+    public void deleteBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        bookingRepository.delete(booking);
     }
 }
