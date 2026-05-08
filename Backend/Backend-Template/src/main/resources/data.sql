@@ -75,3 +75,21 @@ CREATE TABLE IF NOT EXISTS bookings (
     status       VARCHAR(20) DEFAULT 'CONFIRMED',
     created_at   TIMESTAMP DEFAULT NOW()
 );
+
+-- ============================================================
+-- PHASE 6: Seed Admin User for Testing
+-- Password: AdminPass123 (BCrypt hash)
+-- ============================================================
+INSERT INTO users (name, email, password, created_at)
+SELECT 'Admin User', 'admin@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYVvMpYKZjO', NOW()
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@example.com');
+
+-- Assign ADMIN role to admin user
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id
+FROM users u, roles r
+WHERE u.email = 'admin@example.com' AND r.name = 'ADMIN'
+AND NOT EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = u.id AND ur.role_id = r.id
+);
