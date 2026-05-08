@@ -1,0 +1,22 @@
+====================================================
+STARTING SMOKE TEST SUITE
+Target: http://localhost:8080
+Log File: Test-Smoke/smoke_test_20260508_140219.log
+====================================================
+[0;34mTesting Public - Get All Hotels (/api/hotels)...[0m
+[0;32mSUCCESS: /api/hotels returned 200[0m
+[0;34mRegistering user: smoke_1778229140@example.com...[0m
+[0;32mSUCCESS: User registered.[0m
+[0;34mLogging in user: smoke_1778229140@example.com...[0m
+[0;32mSUCCESS: Token received.[0m
+[0;34mTesting Protected - User Access (/api/test/user)...[0m
+[0;32mSUCCESS: /api/test/user returned 200[0m
+[0;34mTesting SuperAdmin - Revenue (Unauthorized) (/api/superadmin/revenue)...[0m
+[0;32mSUCCESS: /api/superadmin/revenue returned 403[0m
+[0;34mTesting SuperAdmin - Analytics (Unauthorized) (/api/superadmin/analytics)...[0m
+[0;32mSUCCESS: /api/superadmin/analytics returned 403[0m
+
+====================================================
+SMOKE TEST COMPLETED
+Results logged to: Test-Smoke/smoke_test_20260508_140219.log
+====================================================
