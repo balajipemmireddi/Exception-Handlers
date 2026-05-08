@@ -9,6 +9,7 @@ import com.hotel.entity.Room;
 import com.hotel.entity.Users;
 import com.hotel.exception.ResourceNotFoundException;
 import com.hotel.exception.UnauthorizedResourceAccessException;
+import com.hotel.mapper.BookingMapper;
 import com.hotel.repository.BookingRepository;
 import com.hotel.repository.HotelRepository;
 import com.hotel.repository.RoomRepository;
@@ -23,11 +24,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Phase 9: Booking Service
  * Business logic for user booking operations.
+ * Updated to use BookingMapper for entity-DTO conversion.
  */
 @Service
 public class BookingService {
@@ -43,6 +44,9 @@ public class BookingService {
 
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private BookingMapper bookingMapper;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -98,7 +102,7 @@ public class BookingService {
         booking.setStatus("CONFIRMED");
 
         Booking savedBooking = bookingRepository.save(booking);
-        return mapToDTO(savedBooking);
+        return bookingMapper.toResponseDTO(savedBooking);
     }
 
     /**
@@ -117,9 +121,7 @@ public class BookingService {
         }
 
         List<Booking> bookings = bookingRepository.findByUserId(userId);
-        return bookings.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return bookingMapper.toResponseDTOs(bookings);
     }
 
     /**
@@ -145,25 +147,7 @@ public class BookingService {
         // Update status to CANCELLED
         booking.setStatus("CANCELLED");
         Booking updatedBooking = bookingRepository.save(booking);
-        return mapToDTO(updatedBooking);
-    }
-
-    /**
-     * Map Booking entity to BookingResponseDTO.
-     */
-    private BookingResponseDTO mapToDTO(Booking booking) {
-        return new BookingResponseDTO(
-                booking.getId(),
-                booking.getUser().getId(),
-                booking.getUser().getName(),
-                booking.getHotel().getName(),
-                booking.getRoom().getRoomType(),
-                booking.getCheckIn().toString(),
-                booking.getCheckOut().toString(),
-                booking.getStatus(),
-                booking.getTotalAmount(),
-                booking.getCreatedAt().toString()
-        );
+        return bookingMapper.toResponseDTO(updatedBooking);
     }
 
     // ========== ADMIN OPERATIONS (Phase 10) ==========
@@ -173,9 +157,7 @@ public class BookingService {
      */
     public List<BookingResponseDTO> getAllBookings() {
         List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return bookingMapper.toResponseDTOs(bookings);
     }
 
     /**
@@ -211,7 +193,7 @@ public class BookingService {
         }
 
         Booking updatedBooking = bookingRepository.save(booking);
-        return mapToDTO(updatedBooking);
+        return bookingMapper.toResponseDTO(updatedBooking);
     }
 
     /**
