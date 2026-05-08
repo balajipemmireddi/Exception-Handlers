@@ -93,3 +93,52 @@ AND NOT EXISTS (
     SELECT 1 FROM user_roles ur
     WHERE ur.user_id = u.id AND ur.role_id = r.id
 );
+-- ============================================================
+-- PHASE 11: Seed Super Admin User for Testing
+-- Password: SuperAdminPass123 (BCrypt hash)
+-- ============================================================
+INSERT INTO users (name, email, password, created_at)
+SELECT 'Super Admin User', 'superadmin@example.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYVvMpYKZjO', NOW()
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'superadmin@example.com');
+
+-- Assign SUPER_ADMIN role to super admin user
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id
+FROM users u, roles r
+WHERE u.email = 'superadmin@example.com' AND r.name = 'SUPER_ADMIN'
+AND NOT EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = u.id AND ur.role_id = r.id
+);
+
+-- ============================================================
+-- PHASE 11: Seed Sample Data for Analytics Testing
+-- ============================================================
+
+-- Sample hotels for analytics
+INSERT INTO hotels (name, location, description, image_url, star_rating, created_at)
+SELECT 'Grand Palace Hotel', 'Mumbai', 'Luxury hotel in the heart of Mumbai', 'https://placehold.co/400x300', 4, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM hotels WHERE name = 'Grand Palace Hotel');
+
+INSERT INTO hotels (name, location, description, image_url, star_rating, created_at)
+SELECT 'Sea View Resort', 'Goa', 'Beachfront resort with stunning sea views', 'https://placehold.co/400x300', 5, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM hotels WHERE name = 'Sea View Resort');
+
+-- Sample rooms for analytics
+INSERT INTO rooms (hotel_id, room_type, price, capacity, available)
+SELECT h.id, 'SINGLE', 2500.00, 1, true
+FROM hotels h
+WHERE h.name = 'Grand Palace Hotel'
+AND NOT EXISTS (SELECT 1 FROM rooms r WHERE r.hotel_id = h.id AND r.room_type = 'SINGLE');
+
+INSERT INTO rooms (hotel_id, room_type, price, capacity, available)
+SELECT h.id, 'DOUBLE', 4000.00, 2, true
+FROM hotels h
+WHERE h.name = 'Grand Palace Hotel'
+AND NOT EXISTS (SELECT 1 FROM rooms r WHERE r.hotel_id = h.id AND r.room_type = 'DOUBLE');
+
+INSERT INTO rooms (hotel_id, room_type, price, capacity, available)
+SELECT h.id, 'SUITE', 8000.00, 4, false
+FROM hotels h
+WHERE h.name = 'Grand Palace Hotel'
+AND NOT EXISTS (SELECT 1 FROM rooms r WHERE r.hotel_id = h.id AND r.room_type = 'SUITE');
