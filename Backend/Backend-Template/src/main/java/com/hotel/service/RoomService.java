@@ -5,6 +5,7 @@ import com.hotel.dto.RoomRequestDTO;
 import com.hotel.entity.Hotel;
 import com.hotel.entity.Room;
 import com.hotel.exception.ResourceNotFoundException;
+import com.hotel.mapper.RoomMapper;
 import com.hotel.repository.HotelRepository;
 import com.hotel.repository.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Phase 8: Room Service
  * Business logic for room management operations.
+ * Updated to use RoomMapper for entity-DTO conversion.
  */
 @Service
 public class RoomService {
@@ -26,6 +27,9 @@ public class RoomService {
 
     @Autowired
     private HotelRepository hotelRepository;
+
+    @Autowired
+    private RoomMapper roomMapper;
 
     /**
      * Add a room to a hotel (ADMIN operation).
@@ -43,7 +47,7 @@ public class RoomService {
         room.setAvailable(request.getAvailable() != null ? request.getAvailable() : true);
 
         Room savedRoom = roomRepository.save(room);
-        return mapToDTO(savedRoom);
+        return roomMapper.toDTO(savedRoom);
     }
 
     /**
@@ -68,7 +72,7 @@ public class RoomService {
         }
 
         Room updatedRoom = roomRepository.save(room);
-        return mapToDTO(updatedRoom);
+        return roomMapper.toDTO(updatedRoom);
     }
 
     /**
@@ -86,21 +90,6 @@ public class RoomService {
      */
     public List<RoomDTO> getRoomsByHotelId(Long hotelId) {
         List<Room> rooms = roomRepository.findByHotelId(hotelId);
-        return rooms.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Map Room entity to RoomDTO.
-     */
-    private RoomDTO mapToDTO(Room room) {
-        return new RoomDTO(
-                room.getId(),
-                room.getRoomType(),
-                room.getPrice(),
-                room.getCapacity(),
-                room.getAvailable()
-        );
+        return roomMapper.toDTOs(rooms);
     }
 }
