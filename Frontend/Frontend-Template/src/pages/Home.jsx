@@ -1,60 +1,49 @@
-// Home.jsx — Public landing / hotel listing page (placeholder for Phase 5).
-// Phase 3: renders a structural shell so routing can be validated now.
-// Phase 5 will replace the placeholder body with real HotelCard components
-// fetched from apiService.getHotels().
+// Home.jsx — Phase 5: Hotel Listing UI (Home Page)
+//
+// Renders:
+//   1. Hero banner with CTA
+//   2. HotelList component — fetches HotelSummaryDTO[] from apiService.getHotels()
+//      and renders one HotelCard per hotel
+//
+// No data is hardcoded here. All hotel data comes from apiService.js.
 
-import { Container, Row, Col, Card, Button, Spinner } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import HotelList from "../components/hotel/HotelList";
 
 export default function Home() {
   return (
     <main>
-      {/* ── Hero banner ── */}
-      <section className="bg-dark text-white py-5">
+      {/* ── Hero banner ─────────────────────────────────────────────────── */}
+      <section
+        className="bg-dark text-white py-5"
+        style={{
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+        }}
+      >
         <Container className="text-center py-4">
           <h1 className="display-5 fw-bold mb-3">Find Your Perfect Stay</h1>
-          <p className="lead text-white-50 mb-4">
-            Browse hotels across India — Mumbai, Goa, Hyderabad and more.
+          <p className="lead mb-2" style={{ color: "rgba(255,255,255,0.75)" }}>
+            Browse premium hotels across India — Mumbai, Goa, Hyderabad and more.
           </p>
-          <Button as={Link} to="/" variant="primary" size="lg">
-            Browse Hotels
-          </Button>
+          <p className="small mb-0" style={{ color: "rgba(255,255,255,0.5)" }}>
+            Best prices guaranteed · Free cancellation on select rooms
+          </p>
         </Container>
       </section>
 
-      {/* ── Hotel listing area (populated in Phase 5) ── */}
+      {/* ── Hotel listing ────────────────────────────────────────────────── */}
       <Container className="py-5">
-        <h2 className="mb-4 fw-semibold">Available Hotels</h2>
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <div>
+            <h2 className="fw-bold mb-1">Available Hotels</h2>
+            <p className="text-muted mb-0 small">
+              Showing all properties — click a card to view rooms and book
+            </p>
+          </div>
+        </div>
 
-        {/* Phase 5 placeholder — HotelList component goes here */}
-        <Row className="g-4">
-          {[1, 2, 3].map((n) => (
-            <Col key={n} xs={12} md={6} lg={4}>
-              <Card className="h-100 shadow-sm">
-                <div
-                  className="bg-secondary"
-                  style={{ height: "180px" }}
-                  aria-label="Hotel image placeholder"
-                />
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title className="placeholder-glow">
-                    <span className="placeholder col-8" />
-                  </Card.Title>
-                  <Card.Text className="placeholder-glow flex-grow-1">
-                    <span className="placeholder col-6" />
-                  </Card.Text>
-                  <Button variant="outline-primary" disabled>
-                    View Details
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-
-        <p className="text-muted text-center mt-4 small">
-          Hotel cards will load here in Phase 5 via <code>apiService.getHotels()</code>.
-        </p>
+        {/* HotelList handles loading / error / empty states internally */}
+        <HotelList />
       </Container>
     </main>
   );

@@ -1,3 +1,4 @@
+
 // SuperAdminDashboard.jsx — Super Admin analytics at /superadmin/analytics.
 // Protected: SUPER_ADMIN role only.
 // Phase 3: structural placeholder — real data loads in Phase 10
