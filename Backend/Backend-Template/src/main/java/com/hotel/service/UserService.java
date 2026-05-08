@@ -1,7 +1,9 @@
 package com.hotel.service;
 
+import com.hotel.entity.Role;
+import com.hotel.entity.Role.RoleName;
 import com.hotel.entity.Users;
-
+import com.hotel.repository.RoleRepository;
 import com.hotel.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,53 +12,74 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+
 @Service
 public class UserService {
 
-
-
-@Autowired
+    @Autowired
     private AuthenticationManager authmanager;
 
-@Autowired
-private JWTService jwtService;
-
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-
-
-    // Inside UserService.java
     @Autowired
-    private UserRepo usersRepository;
+    private JWTService jwtService;
 
-    // Master Login Method
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
+    /**
+     * Resolves the highest role a user holds.
+     * Priority: SUPER_ADMIN > ADMIN > USER
+     */
+    public String resolveHighestRole(Users user) {
+        return user.getRoles().stream()
+                .map(r -> r.getName().name())
+                .max(Comparator.comparingInt(this::roleWeight))
+                .orElse(RoleName.USER.name());
+    }
+
+    private int roleWeight(String roleName) {
+        return switch (roleName) {
+            case "SUPER_ADMIN" -> 3;
+            case "ADMIN"       -> 2;
+            default            -> 1;
+        };
+    }
+
+    /** Login — returns JWT token string. */
     public String verify(Users user) {
         Authentication authentication = authmanager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
 
         if (authentication.isAuthenticated()) {
-            // ALWAYS fetch the real user from DB to get the true role
-            Users realUser = usersRepository.findByEmail(user.getEmail());
-
-            // Pass both username and role to the JWT Service
-            return jwtService.generateToken(realUser.getEmail(), realUser.getRole());
+            Users realUser = userRepo.findByEmail(user.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            String highestRole = resolveHighestRole(realUser);
+            return jwtService.generateToken(realUser.getEmail(), realUser.getId(), highestRole);
         }
         return "Fail";
     }
 
-    // Master Register Method
+    /** Register — assigns default USER role, hashes password, persists. */
     public Users register(Users user) {
         user.setPassword(encoder.encode(user.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
 
-        // ALWAYS set a fallback default role if the frontend doesn't send one
-        if (user.getRole() == null) {
-            user.setRole(Users.Role.USER);
-        }
-        return usersRepository.save(user);
+        // Assign default USER role from the roles table
+        Role userRole = roleRepository.findByName(RoleName.USER)
+                .orElseThrow(() -> new RuntimeException("Default USER role not found in database. Run data.sql seed first."));
+        user.getRoles().add(userRole);
+
+        return userRepo.save(user);
     }
-    
+
     public Users getById(Long id) {
-        return usersRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
-    
 }
